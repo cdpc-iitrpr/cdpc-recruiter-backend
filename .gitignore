@@ -1,1 +1,51 @@
+# Compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env
 env
+
+# Django generated files
+db.sqlite3
+*.log
+*.pot
+*.pyc
+__pycache__/
+media/
+
+# Static files
+/staticfiles/
+/static/
+
+# Media files
+/media/
+
+# Local development settings
+local_settings.py
+
+# IDE specific files
+.vscode/
+.idea/
+*.iml
+
+# Compiled JavaScript files
+*.js.map
+
+# Dependency directories
+node_modules/
+__pycache__/
+.pycache/
+
+# macOS
+.DS_Store
+
+# Compiled files
+*.pyc
+*.pyo
+
+# Log files
+*.log
