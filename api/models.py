@@ -1,3 +1,4 @@
+from typing_extensions import override
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
@@ -24,7 +25,6 @@ class User(AbstractUser):
         verbose_name=_('user permissions'),
         help_text=_('Specific permissions for this user.'),
     )
-
 
 class ContactDetails(models.Model):
     name = models.CharField(max_length=255)
@@ -62,7 +62,8 @@ class SelectionProcess(models.Model):
     logistics_requirements = models.TextField()
     interested_discipline = ArrayField(models.JSONField(default=dict, blank=True))
 
-class JAFForm(models.Model):
+
+class Form(models.Model):
     organisation_name = models.CharField(max_length=255)
     organisation_postal_address = models.TextField()
     organisation_website = models.URLField()
@@ -70,23 +71,40 @@ class JAFForm(models.Model):
     organisation_type_options = ArrayField(models.TextField())
     organisation_type_others = models.TextField()
 
-    industry_sector_options = ArrayField(models.TextField())
+    industry_sector_options = ArrayField(models.TextField(),default=list)
     industry_sector_others = models.TextField()
-    
-    contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hr')
-    contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contact')
-    contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contact')
     
     job_profile_designation = models.CharField(max_length=255)
     job_profile_job_description = models.TextField()
     job_profile_job_description_pdf = ArrayField(models.FileField(upload_to='job_description_pdfs/'))
     job_profile_place_of_posting = models.CharField(max_length=255)
     
+    class Meta:
+        abstract = True
+
+class JAFForm(Form):
+    pass
+    contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrJAF')
+    contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contactJAF')
+    contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contactJAF')
     salary_details_b_tech = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='b_tech')
     salary_details_m_tech = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='m_tech')
     salary_details_m_sc = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='m_sc')
     salary_details_phd = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='phd')
-    
-    selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_process')
+    selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processJAF')
 
-    
+
+class INFForm(Form):
+    pass
+    contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrINF')
+    contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contactINF')
+    contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contactINF')
+    job_profile_two_months_intern = models.BooleanField()
+    job_profile_six_months_intern = models.BooleanField()
+    job_profile_joint_master_thesis_program = models.BooleanField()
+
+    stipend_details_stipend_amount = models.TextField()
+    stipend_details_bonus_perks_incentives = models.TextField()
+    stipend_details_accodation_trip_fare = models.TextField()
+    stipend_details_bonus_service_contract = models.TextField()
+    selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processINF')
