@@ -5,6 +5,8 @@ from django.utils.translation import gettext_lazy as _
 # Create your models here.
 
 class User(AbstractUser):
+    name= models.CharField(max_length=255,null=False,blank=False)
+    email = models.EmailField(unique=True,null=False,blank=False)
     phone = models.CharField(max_length=15, null=True, blank=True)
     company_name = models.CharField(max_length=100, null=True, blank=True)
     role = models.CharField(max_length=100, null=True, blank=True)
@@ -25,6 +27,9 @@ class User(AbstractUser):
         help_text=_('Specific permissions for this user.'),
     )
 
+class SpocCompany(models.Model):
+    spocEmail=models.EmailField()
+    HREmail=models.EmailField()
 
 class ContactDetails(models.Model):
     name = models.CharField(max_length=255)
@@ -88,5 +93,9 @@ class JAFForm(models.Model):
     salary_details_phd = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='phd')
     
     selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_process')
+    is_draft = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
-    
+class DepartmentPrograms(models.Model):
+    department_name = models.CharField(max_length=255,blank=False,null=False)
+    program_name = models.CharField(max_length=255,blank=False,null=False)
