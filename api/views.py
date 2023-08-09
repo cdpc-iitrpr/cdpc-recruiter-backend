@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from .models import User,JAFForm,SpocCompany
+from .models import User,JAFForm,SpocCompany,InterestedDiscipline,INFForm
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.conf import settings
@@ -148,7 +148,7 @@ def signout(request):
     logout(request)
     return JsonResponse({'success': 'User logged out successfully'}, status=200)
 
-@authenticate
+
 def RecruiterJAF(request):
     if(request.method=='GET'):
         
@@ -159,7 +159,7 @@ def RecruiterJAF(request):
         if request.user.role != 'recruiter':
             return JsonResponse({'error': 'Please login as recruiter'}, status=400)
         
-        email = request.session['email']
+        email = request.user.email
         organisation_name = User.objects.get(email=email).company_name
 
         # if request contains a form id, then return that form
@@ -170,7 +170,6 @@ def RecruiterJAF(request):
         JAF_FormList = JAFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft')
         return JsonResponse({'JAF_list': list(JAF_FormList)}, status=200)
 
-@authenticate
 def RecruiterSubmitJAF(request):
     if(request.method=="POST"):
 
@@ -213,12 +212,82 @@ def RecruiterSubmitJAF(request):
                 JAF_Form.salary_details_phd = form_data['salary_details_phd']
                 JAF_Form.selection_process = form_data['selection_process']
                 JAF_Form.is_draft = save_as_draft
+                JAF_Form.timestamp = timezone.now()
                 JAF_Form.save()
                 return JsonResponse({'success': 'JAF form updated successfully'}, status=200)
             else:
                 return JsonResponse({'error': 'Invalid form id'}, status=400)
 
-@authenticate
+def RecruiterINF(request):
+    if( request.method=='GET'):
+
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Please login first'}, status=400)
+        
+        if request.user.role != 'recruiter':
+            return JsonResponse({'error': 'Please login as recruiter'}, status=400)
+        
+        email = request.user.email
+        organisation_name = User.objects.get(email=email).company_name
+
+        # if request contains a form id, then return that form
+        if 'form_id' in request.GET:
+            INF_Form = INFForm.objects.get(id=request.GET['form_id'])
+            return JsonResponse({'INF_form': INF_Form}, status=200)
+            
+        INF_FormList = INFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft')
+        return JsonResponse({'JAF_list': list(INF_FormList)}, status=200)
+
+def RecruiterSubmitINF(request):
+    if(request.method=="POST"):
+
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Please login first'}, status=400)
+        
+        # logic to determine that user is logged in as recruiter
+        if request.user.role != 'recruiter':
+            return JsonResponse({'error': 'Please login as recruiter'}, status=400)
+        
+        if not request.body:
+            return JsonResponse({'error': 'Please provide INF form'}, status=400)
+
+        data = json.loads(request.body)
+        form_id = data.get('form_id', None)
+        save_as_draft = data.get('save_as_draft', None)
+        form_data = data.get('form_data', None)
+
+        if form_id and form_data:
+            if INFForm.objects.filter(id=form_id).exists:
+                INF_Form=INFForm.objects.get(id=form_id)
+                INF_Form.organisation_name=form_data['organisation_name']
+                INF_Form.organisation_postal_address=form_data['organisation_postal_address']
+                INF_Form.organisation_website=form_data['organisation_website']
+                INF_Form.organisation_type_options=form_data['organisation_type_options']
+                INF_Form.organisation_type_others=form_data['organisation_type_others']
+                INF_Form.industry_sector_options=form_data['industry_sector_options']
+                INF_Form.industry_sector_others=form_data['industry_sector_others']
+                INF_Form.contact_details_head_hr=form_data['contact_details_head_hr']   
+                INF_Form.contact_details_first_person_of_contact=form_data['contact_details_first_person_of_contact']
+                INF_Form.contact_details_second_person_of_contact=form_data['contact_details_second_person_of_contact']
+                INF_Form.job_profile_designation=form_data['job_profile_designation']
+                INF_Form.job_profile_job_description=form_data['job_profile_job_description']
+                INF_Form.job_profile_job_description_pdf=form_data['job_profile_job_description_pdf']
+                INF_Form.job_profile_place_of_posting=form_data['job_profile_place_of_posting']
+                INF_Form.job_profile_six_months_intern=form_data['job_profile_six_months_intern']
+                INF_Form.job_profile_two_months_intern=form_data['job_profile_two_months_intern']
+                INF_Form.job_profile_joint_master_thesis_program=form_data['job_profile_joint_master_thesis_program']
+                INF_Form.stipend_details_stipend_amount=form_data['stipend_details_stipend_amount']
+                INF_Form.stipend_details_bonus_perks_incentives=form_data['stipend_details_bonus_perks_incentives']
+                INF_Form.stipend_details_accodation_trip_fare=form_data['stipend_details_accodation_trip_fare']
+                INF_Form.stipend_details_bonus_service_contract=form_data['stipend_details_bonus_service_contract']
+                INF_Form.selection_process=form_data['selection_process']
+                INF_Form.is_draft=save_as_draft
+                INF_Form.timestamp=timezone.now()
+                INF_Form.save()
+                return JsonResponse({'success': 'INF form updated successfully'}, status=200)
+            else:
+                return JsonResponse({'error': 'Invalid form id'}, status=400)
+
 def SpocDetails(request):
 
     if(request.method=='GET'):
@@ -242,8 +311,8 @@ def SpocDetails(request):
     
 def DepartmentPrograms(request):
     if request.method=="GET":
-        if 'program' in request.GET:
-            departments = DepartmentPrograms.objects.filter(program=request.GET['program']).values('department')
-            return JsonResponse({'departments': list(departments)}, status=200)
+        if 'degree' in request.GET:
+            branch = InterestedDiscipline.objects.filter(degree=request.GET['degree']).values('branch')
+            return JsonResponse({'branch': list(branch)}, status=200)
         else:
-            return JsonResponse({'error': 'Please provide program'}, status=400)
+            return JsonResponse({'error': 'Please provide degree'}, status=400)
