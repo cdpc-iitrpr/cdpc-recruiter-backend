@@ -6,6 +6,8 @@ from django.utils.translation import gettext_lazy as _
 # Create your models here.
 
 class User(AbstractUser):
+    name= models.CharField(max_length=255,null=False,blank=False)
+    email = models.EmailField(unique=True,null=False,blank=False)
     phone = models.CharField(max_length=15, null=True, blank=True)
     company_name = models.CharField(max_length=100, null=True, blank=True)
     role = models.CharField(max_length=100, null=True, blank=True)
@@ -26,6 +28,9 @@ class User(AbstractUser):
         help_text=_('Specific permissions for this user.'),
     )
 
+class SpocCompany(models.Model):
+    spocEmail=models.EmailField()
+    HREmail=models.EmailField()
 class ContactDetails(models.Model):
     name = models.CharField(max_length=255)
     email = models.EmailField()
@@ -71,7 +76,7 @@ class Form(models.Model):
     organisation_type_options = ArrayField(models.TextField())
     organisation_type_others = models.TextField()
 
-    industry_sector_options = ArrayField(models.TextField(),default=list)
+    industry_sector_options = ArrayField(models.TextField())
     industry_sector_others = models.TextField()
     
     job_profile_designation = models.CharField(max_length=255)

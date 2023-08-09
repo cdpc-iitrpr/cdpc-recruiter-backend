@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from .models import User
+from .models import User,JAFForm,SpocCompany
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.conf import settings
@@ -39,7 +39,7 @@ def signup(request):
             return JsonResponse({'error': 'Please provide email'}, status=400)
         data = json.loads(request.body)
         email = data.get('email', None)
-        first_name = data.get('name', None)
+        name = data.get('name', None)
         phone = data.get('phone', None)
         role = 'recruiter'  # Only recruiter can signup from this API
         company_name = data.get('company_name', None)
@@ -62,7 +62,7 @@ def signup(request):
             # Save user info in session
             request.session['email'] = email
             request.session['secret_key'] = secret_key
-            request.session['first_name'] = first_name
+            request.session['name'] = name
             request.session['phone'] = phone
             request.session['role'] = role
             request.session['company_name'] = company_name
@@ -120,7 +120,7 @@ def verify(request):
                     return JsonResponse({'error': 'User already exists'}, status=400)
                 user = User.objects.create(
                     email=request.session['email'],
-                    first_name=request.session['first_name'],
+                    name=request.session['name'],
                     phone=request.session['phone'],
                     role=request.session['role'],
                     company_name=request.session['company_name']
@@ -147,3 +147,103 @@ def verify(request):
 def signout(request):
     logout(request)
     return JsonResponse({'success': 'User logged out successfully'}, status=200)
+
+@authenticate
+def RecruiterJAF(request):
+    if(request.method=='GET'):
+        
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Please login first'}, status=400)
+        
+        # logic to determine that user is logged in as recruiter
+        if request.user.role != 'recruiter':
+            return JsonResponse({'error': 'Please login as recruiter'}, status=400)
+        
+        email = request.session['email']
+        organisation_name = User.objects.get(email=email).company_name
+
+        # if request contains a form id, then return that form
+        if 'form_id' in request.GET:
+            JAF_Form = JAFForm.objects.get(id=request.GET['form_id'])
+            return JsonResponse({'JAF_form': JAF_Form}, status=200)
+            
+        JAF_FormList = JAFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft')
+        return JsonResponse({'JAF_list': list(JAF_FormList)}, status=200)
+
+@authenticate
+def RecruiterSubmitJAF(request):
+    if(request.method=="POST"):
+
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Please login first'}, status=400)
+        
+        # logic to determine that user is logged in as recruiter
+        if request.user.role != 'recruiter':
+            return JsonResponse({'error': 'Please login as recruiter'}, status=400)
+        
+        if not request.body:
+            return JsonResponse({'error': 'Please provide JAF form'}, status=400)
+
+        data = json.loads(request.body)
+        form_id = data.get('form_id', None)
+        save_as_draft = data.get('save_as_draft', None)
+        form_data = data.get('form_data', None)
+
+        # check if form_id is present in JAFForm table
+        if form_id and form_data:
+            if JAFForm.objects.filter(id=form_id).exists():
+                JAF_Form = JAFForm.objects.get(id=form_id)
+                JAF_Form.organisation_name = form_data['organisation_name']
+                JAF_Form.organisation_postal_address = form_data['organisation_postal_address']
+                JAF_Form.organisation_website = form_data['organisation_website']
+                JAF_Form.organisation_type_options = form_data['organisation_type_options']
+                JAF_Form.organisation_type_others = form_data['organisation_type_others']
+                JAF_Form.industry_sector_options = form_data['industry_sector_options']
+                JAF_Form.industry_sector_others = form_data['industry_sector_others']
+                JAF_Form.contact_details_head_hr = form_data['contact_details_head_hr']
+                JAF_Form.contact_details_first_person_of_contact = form_data['contact_details_first_person_of_contact']
+                JAF_Form.contact_details_second_person_of_contact = form_data['contact_details_second_person_of_contact']
+                JAF_Form.job_profile_designation = form_data['job_profile_designation']
+                JAF_Form.job_profile_job_description = form_data['job_profile_job_description']
+                JAF_Form.job_profile_job_description_pdf = form_data['job_profile_job_description_pdf']
+                JAF_Form.job_profile_place_of_posting = form_data['job_profile_place_of_posting']
+                JAF_Form.salary_details_b_tech = form_data['salary_details_b_tech']
+                JAF_Form.salary_details_m_tech = form_data['salary_details_m_tech']
+                JAF_Form.salary_details_m_sc = form_data['salary_details_m_sc']
+                JAF_Form.salary_details_phd = form_data['salary_details_phd']
+                JAF_Form.selection_process = form_data['selection_process']
+                JAF_Form.is_draft = save_as_draft
+                JAF_Form.save()
+                return JsonResponse({'success': 'JAF form updated successfully'}, status=200)
+            else:
+                return JsonResponse({'error': 'Invalid form id'}, status=400)
+
+@authenticate
+def SpocDetails(request):
+
+    if(request.method=='GET'):
+        
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Please login first'}, status=400)
+        
+        # logic to determine that user is logged in as recruiter
+        if request.user.role != 'recruiter':
+            return JsonResponse({'error': 'Please login as recruiter'}, status=400)
+        
+        email = request.session['email']
+        spoc_email=SpocCompany.objects.get(HREmail=email).spocEmail
+
+        if not spoc_email:
+            return JsonResponse({'Info': 'No Spoc is currently assigned'}, status=200)
+        
+        spoc_details = User.objects.get(email=spoc_email)
+
+        return JsonResponse({'Name':spoc_details.name,'Phone': spoc_details.phone,"Email":spoc_details.email}, status=200)
+    
+def DepartmentPrograms(request):
+    if request.method=="GET":
+        if 'program' in request.GET:
+            departments = DepartmentPrograms.objects.filter(program=request.GET['program']).values('department')
+            return JsonResponse({'departments': list(departments)}, status=200)
+        else:
+            return JsonResponse({'error': 'Please provide program'}, status=400)
