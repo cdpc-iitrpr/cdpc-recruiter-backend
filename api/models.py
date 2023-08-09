@@ -1,5 +1,6 @@
 from typing_extensions import override
 from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
 from django.utils.translation import gettext_lazy as _
@@ -29,13 +30,14 @@ class User(AbstractUser):
     )
 
 class SpocCompany(models.Model):
-    spocEmail=models.EmailField()
+    spocEmail=models.EmailField(null=False,blank=False)
     HREmail=models.EmailField()
+##  looks redundant
 class ContactDetails(models.Model):
-    name = models.CharField(max_length=255)
-    email = models.EmailField()
-    mobile = models.CharField(max_length=20)
-    phone = models.CharField(max_length=20)
+    name = models.CharField(max_length=255,null=False,blank=False)
+    email = models.EmailField(null=False,blank=False)
+    mobile = models.TextField(null=False,blank=True)
+    phone = models.TextField(null=False,blank=False)
 
 class SalaryDetails(models.Model):
     ctc_gross = models.TextField()
@@ -54,6 +56,10 @@ class TestType(models.Model):
     group_discussion = models.BooleanField()
     personal_interview = models.BooleanField()
 
+class InterestedDiscipline(models.Model):
+    degree = models.CharField(max_length=50,null=False,blank=False)
+    branch = ArrayField(models.TextField())
+
 class SelectionProcess(models.Model):
     eligibility_criteria = models.TextField()
     allow_backlog_students = models.BooleanField()
@@ -65,7 +71,7 @@ class SelectionProcess(models.Model):
     number_of_offers = models.PositiveIntegerField()
     preferred_period = models.CharField(max_length=50)
     logistics_requirements = models.TextField()
-    interested_discipline = ArrayField(models.JSONField(default=dict, blank=True))
+    interested_discipline = models.ForeignKey(InterestedDiscipline, on_delete=models.CASCADE)
 
 
 class Form(models.Model):
@@ -83,12 +89,12 @@ class Form(models.Model):
     job_profile_job_description = models.TextField()
     job_profile_job_description_pdf = ArrayField(models.FileField(upload_to='job_description_pdfs/'))
     job_profile_place_of_posting = models.CharField(max_length=255)
-    
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_draft = models.BooleanField()
     class Meta:
         abstract = True
 
 class JAFForm(Form):
-    pass
     contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrJAF')
     contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contactJAF')
     contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contactJAF')
@@ -100,7 +106,6 @@ class JAFForm(Form):
 
 
 class INFForm(Form):
-    pass
     contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrINF')
     contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contactINF')
     contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contactINF')
