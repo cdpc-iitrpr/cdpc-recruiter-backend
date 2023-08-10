@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from .models import User,JAFForm,SpocCompany,DepartmentPrograms
+from .models import User,JAFForm,SpocCompany
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.conf import settings

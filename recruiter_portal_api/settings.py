@@ -92,9 +92,9 @@ WSGI_APPLICATION = 'recruiter_portal_api.wsgi.application'
 DATABASES = {
       'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'portal',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
+        'NAME': env('POSTGRES_DB'),
+        'USER': env('POSTGRES_USER'),
+        'PASSWORD': env('POSTGRES_PASSWORD'),
         'HOST': 'localhost',  # Update with your DBMS host
         'PORT': '5432',  # Update with your DBMS port
     }

@@ -1,3 +1,4 @@
+from typing_extensions import override
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
@@ -28,14 +29,14 @@ class User(AbstractUser):
     )
 
 class SpocCompany(models.Model):
-    spocEmail=models.EmailField()
+    spocEmail=models.EmailField(null=False,blank=False)
     HREmail=models.EmailField()
-
+##  looks redundant
 class ContactDetails(models.Model):
-    name = models.CharField(max_length=255)
-    email = models.EmailField()
-    mobile = models.CharField(max_length=20)
-    phone = models.CharField(max_length=20)
+    name = models.CharField(max_length=255,null=False,blank=False)
+    email = models.EmailField(null=False,blank=False)
+    mobile = models.TextField(null=False,blank=True)
+    phone = models.TextField(null=False,blank=False)
 
 class SalaryDetails(models.Model):
     ctc_gross = models.TextField()
@@ -54,6 +55,10 @@ class TestType(models.Model):
     group_discussion = models.BooleanField()
     personal_interview = models.BooleanField()
 
+class InterestedDiscipline(models.Model):
+    degree = models.CharField(max_length=50,null=False,blank=False)
+    branch = ArrayField(models.TextField())
+
 class SelectionProcess(models.Model):
     eligibility_criteria = models.TextField()
     allow_backlog_students = models.BooleanField()
@@ -65,9 +70,10 @@ class SelectionProcess(models.Model):
     number_of_offers = models.PositiveIntegerField()
     preferred_period = models.CharField(max_length=50)
     logistics_requirements = models.TextField()
-    interested_discipline = ArrayField(models.JSONField(default=dict, blank=True))
+    interested_discipline = models.ForeignKey(InterestedDiscipline, on_delete=models.CASCADE)
 
-class JAFForm(models.Model):
+
+class Form(models.Model):
     organisation_name = models.CharField(max_length=255)
     organisation_postal_address = models.TextField()
     organisation_website = models.URLField()
@@ -78,24 +84,36 @@ class JAFForm(models.Model):
     industry_sector_options = ArrayField(models.TextField())
     industry_sector_others = models.TextField()
     
-    contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hr')
-    contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contact')
-    contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contact')
-    
     job_profile_designation = models.CharField(max_length=255)
     job_profile_job_description = models.TextField()
     job_profile_job_description_pdf = ArrayField(models.FileField(upload_to='job_description_pdfs/'))
     job_profile_place_of_posting = models.CharField(max_length=255)
-    
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_draft = models.BooleanField()
+    class Meta:
+        abstract = True
+
+class JAFForm(Form):
+    contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrJAF')
+    contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contactJAF')
+    contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contactJAF')
     salary_details_b_tech = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='b_tech')
     salary_details_m_tech = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='m_tech')
     salary_details_m_sc = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='m_sc')
     salary_details_phd = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='phd')
-    
-    selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_process')
-    is_draft = models.BooleanField(default=False)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processJAF')
 
-class DepartmentPrograms(models.Model):
-    department_name = models.CharField(max_length=255,blank=False,null=False)
-    program_name = models.CharField(max_length=255,blank=False,null=False)
+
+class INFForm(Form):
+    contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrINF')
+    contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contactINF')
+    contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contactINF')
+    job_profile_two_months_intern = models.BooleanField()
+    job_profile_six_months_intern = models.BooleanField()
+    job_profile_joint_master_thesis_program = models.BooleanField()
+
+    stipend_details_stipend_amount = models.TextField()
+    stipend_details_bonus_perks_incentives = models.TextField()
+    stipend_details_accodation_trip_fare = models.TextField()
+    stipend_details_bonus_service_contract = models.TextField()
+    selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processINF')
