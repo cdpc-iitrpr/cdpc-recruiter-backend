@@ -28,10 +28,16 @@ class User(AbstractUser):
         help_text=_('Specific permissions for this user.'),
     )
 
+    def __str__(self):
+        return self.email
+
 class SpocCompany(models.Model):
     spocEmail=models.EmailField(null=False,blank=False)
     HREmail=models.EmailField()
-##  looks redundant
+
+    def __str__(self):
+        return self.spocEmail+"("+self.HREmail+")"
+
 class ContactDetails(models.Model):
     name = models.CharField(max_length=255,null=False,blank=False)
     email = models.EmailField(null=False,blank=False)
@@ -59,6 +65,9 @@ class InterestedDiscipline(models.Model):
     degree = models.CharField(max_length=50,null=False,blank=False)
     branch = ArrayField(models.TextField())
 
+    def __str__(self):
+        return self.degree
+
 class SelectionProcess(models.Model):
     eligibility_criteria = models.TextField()
     allow_backlog_students = models.BooleanField()
@@ -71,7 +80,6 @@ class SelectionProcess(models.Model):
     preferred_period = models.CharField(max_length=50)
     logistics_requirements = models.TextField()
     interested_discipline = models.ForeignKey(InterestedDiscipline, on_delete=models.CASCADE)
-
 
 class Form(models.Model):
     organisation_name = models.CharField(max_length=255)
@@ -102,7 +110,6 @@ class JAFForm(Form):
     salary_details_m_sc = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='m_sc')
     salary_details_phd = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='phd')
     selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processJAF')
-
 
 class INFForm(Form):
     contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrINF')
