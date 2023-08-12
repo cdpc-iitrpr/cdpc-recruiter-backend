@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from .models import *
+from .utils import *
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.conf import settings
@@ -161,6 +162,10 @@ def RecruiterJAF(request,form_id=None):
         
         # email = request.user.email
         email="2020csb1068@oracle.com"
+
+        if( User.objects.filter(email=email).exists() == False):
+            return JsonResponse({'error': 'Recruiter is not present on portal'}, status=400)
+
         organisation_name=User.objects.get(email=email).company_name
 
 
@@ -197,37 +202,62 @@ def RecruiterSubmitJAF(request,form_id=None):
         if form_data:
             JAF_Form=None
             if( form_id is None):
-                JAF_Form = JAFForm.objects.create()
+                JAF_Form = JAFForm.objects.create(
+                    organisation_name = form_data.get('organisation_name', None),
+                    organisation_postal_address = form_data.get('organisation_postal_address', None),
+                    organisation_website = form_data.get('organisation_website', None),
+                    organisation_type_options = form_data.get('organisation_type_options', None),
+                    organisation_type_others = form_data.get('organisation_type_others', None),
+                    industry_sector_options = form_data.get('industry_sector_options', None),
+                    industry_sector_others = form_data.get('industry_sector_others', None),
+                    job_profile_designation = form_data.get('job_profile_designation', None),
+                    job_profile_job_description = form_data.get('job_profile_job_description', None),
+                    job_profile_job_description_pdf = form_data.get('job_profile_job_description_pdf', None),
+                    job_profile_place_of_posting = form_data.get('job_profile_place_of_posting', None),
+
+                    is_draft = save_as_draft, 
+                    timestamp = timezone.now(),
+                    
+                    contact_details_head_hr = AddContactDetails(form_data['contact_details_head_hr']),
+                    contact_details_first_person_of_contact = AddContactDetails(form_data['contact_details_first_person_of_contact']),
+                    contact_details_second_person_of_contact = AddContactDetails(form_data['contact_details_second_person_of_contact']),
+                    salary_details_b_tech = AddSalaryDetails(form_data['salary_details_b_tech']),
+                    salary_details_m_tech = AddSalaryDetails(form_data['salary_details_m_tech']),
+                    salary_details_m_sc = AddSalaryDetails(form_data['salary_details_m_sc']),
+                    salary_details_phd = AddSalaryDetails(form_data['salary_details_phd']),
+                    selection_process = AddSelectionProcess(form_data['selection_process'])
+                )
             elif JAFForm.objects.filter(id=form_id).exists:
                 JAF_Form=JAFForm.objects.get(id=form_id)
-            else:
-                return JsonResponse({'error': 'Invalid form id'}, status=400)
-            
-            JAF_Form.organisation_name = form_data['organisation_name']
-            JAF_Form.organisation_postal_address = form_data['organisation_postal_address']
-            JAF_Form.organisation_website = form_data['organisation_website']
-            JAF_Form.organisation_type_options = form_data['organisation_type_options']
-            JAF_Form.organisation_type_others = form_data['organisation_type_others']
-            JAF_Form.industry_sector_options = form_data['industry_sector_options']
-            JAF_Form.industry_sector_others = form_data['industry_sector_others']
-            JAF_Form.job_profile_designation = form_data['job_profile_designation']
-            JAF_Form.job_profile_job_description = form_data['job_profile_job_description']
-            JAF_Form.job_profile_job_description_pdf = form_data['job_profile_job_description_pdf']
-            JAF_Form.job_profile_place_of_posting = form_data['job_profile_place_of_posting']
+                JAF_Form.organisation_name = form_data.get('organisation_name', None)
+                JAF_Form.organisation_postal_address = form_data.get('organisation_postal_address', None)
+                JAF_Form.organisation_website = form_data.get('organisation_website', None)
+                JAF_Form.organisation_type_options = form_data.get('organisation_type_options', None)
+                JAF_Form.organisation_type_others = form_data.get('organisation_type_others', None)
+                JAF_Form.industry_sector_options = form_data.get('industry_sector_options', None)
+                JAF_Form.industry_sector_others = form_data.get('industry_sector_others', None)
+                JAF_Form.job_profile_designation = form_data.get('job_profile_designation', None)
+                JAF_Form.job_profile_job_description = form_data.get('job_profile_job_description', None)
+                JAF_Form.job_profile_job_description_pdf = form_data.get('job_profile_job_description_pdf', None)
+                JAF_Form.job_profile_place_of_posting = form_data.get('job_profile_place_of_posting', None)
 
-            JAF_Form.is_draft = save_as_draft
-            JAF_Form.timestamp = timezone.now()
+                JAF_Form.is_draft = save_as_draft
+                JAF_Form.timestamp = timezone.now()
+                
+                JAF_Form.contact_details_head_hr = AddContactDetails(form_data['contact_details_head_hr'])
+                JAF_Form.contact_details_first_person_of_contact = AddContactDetails(form_data['contact_details_first_person_of_contact'])
+                JAF_Form.contact_details_second_person_of_contact = AddContactDetails(form_data['contact_details_second_person_of_contact'])
+                JAF_Form.salary_details_b_tech = AddSalaryDetails(form_data['salary_details_b_tech'])
+                JAF_Form.salary_details_m_tech = AddSalaryDetails(form_data['salary_details_m_tech'])
+                JAF_Form.salary_details_m_sc = AddSalaryDetails(form_data['salary_details_m_sc'])
+                JAF_Form.salary_details_phd = AddSalaryDetails(form_data['salary_details_phd'])
+                JAF_Form.selection_process = AddSelectionProcess(form_data['selection_process'])
             
-            JAF_Form.contact_details_head_hr = AddContactDetails(form_data['contact_details_head_hr'])
-            JAF_Form.contact_details_first_person_of_contact = AddContactDetails(form_data['contact_details_first_person_of_contact'])
-            JAF_Form.contact_details_second_person_of_contact = AddContactDetails(form_data['contact_details_second_person_of_contact'])
-            JAF_Form.salary_details_b_tech = AddSalaryDetails(form_data['salary_details_b_tech'])
-            JAF_Form.salary_details_m_tech = AddSalaryDetails(form_data['salary_details_m_tech'])
-            JAF_Form.salary_details_m_sc = AddSalaryDetails(form_data['salary_details_m_sc'])
-            JAF_Form.salary_details_phd = AddSalaryDetails(form_data['salary_details_phd'])
-            JAF_Form.selection_process = AddSelectionProcess(form_data['selection_process'])
+                JAF_Form.save()
+            else:
+                return JsonResponse({'error': 'Invalid form id'}, status=400) 
             
-            JAF_Form.save()
+
 
             if form_id is None:
                 return JsonResponse({'success': 'JAF form created successfully'}, status=200)
@@ -247,6 +277,10 @@ def RecruiterINF(request,form_id=None):
         
         # email = request.user.email
         email="2020csb1068@oracle.com"
+
+        if( User.objects.filter(email=email).exists() == False):
+            return JsonResponse({'error': 'Recruiter is not present on portal'}, status=400)
+        
         organisation_name = User.objects.get(email=email).company_name
 
         # if request contains a form id, then return that form
@@ -281,41 +315,68 @@ def RecruiterSubmitINF(request,form_id=None):
         if form_data:
             INF_Form=None
             if( form_id is None):
-                INF_Form = INFForm.objects.create()
+                INF_Form = INFForm.objects.create(
+                    organisation_name=form_data.get('organisation_name', None),
+                    organisation_postal_address=form_data.get('organisation_postal_address', None),
+                    organisation_website=form_data.get('organisation_website', None),
+                    organisation_type_options=form_data.get('organisation_type_options', None),
+                    organisation_type_others=form_data.get('organisation_type_others', None),
+                    industry_sector_options=form_data.get('industry_sector_options', None),
+                    industry_sector_others=form_data.get('industry_sector_others', None),
+                    job_profile_designation=form_data.get('job_profile_designation', None),
+                    job_profile_job_description=form_data.get('job_profile_job_description', None),
+                    job_profile_job_description_pdf=form_data.get('job_profile_job_description_pdf', None),
+                    job_profile_place_of_posting=form_data.get('job_profile_place_of_posting', None),
+
+                    is_draft=save_as_draft,
+                    timestamp=timezone.now(),
+
+                    job_profile_six_months_intern=form_data.get('job_profile_six_months_intern', None),
+                    job_profile_two_months_intern=form_data.get('job_profile_two_months_intern', None),
+                    job_profile_joint_master_thesis_program=form_data.get('job_profile_joint_master_thesis_program', None),
+                    
+                    contact_details_head_hr=AddContactDetails(form_data.get('contact_details_head_hr', None)),
+                    contact_details_first_person_of_contact=AddContactDetails(form_data.get('contact_details_first_person_of_contact', None)),
+                    contact_details_second_person_of_contact=AddContactDetails(form_data.get('contact_details_second_person_of_contact', None)),
+                    stipend_details_stipend_amount=form_data.get('stipend_details_stipend_amount', None),
+                    stipend_details_bonus_perks_incentives=form_data.get('stipend_details_bonus_perks_incentives', None),
+                    stipend_details_accodation_trip_fare=form_data.get('stipend_details_accodation_trip_fare', None),
+                    stipend_details_bonus_service_contract=form_data.get('stipend_details_bonus_service_contract', None),
+                    selection_process=AddSelectionProcess(form_data.get('selection_process', None))
+                )
             elif INFForm.objects.filter(id=form_id).exists:
                 INF_Form=INFForm.objects.get(id=form_id)
+                INF_Form.organisation_name=form_data.get('organisation_name', None)
+                INF_Form.organisation_postal_address=form_data.get('organisation_postal_address', None)
+                INF_Form.organisation_website=form_data.get('organisation_website', None)
+                INF_Form.organisation_type_options=form_data.get('organisation_type_options', None)
+                INF_Form.organisation_type_others=form_data.get('organisation_type_others', None)
+                INF_Form.industry_sector_options=form_data.get('industry_sector_options', None)
+                INF_Form.industry_sector_others=form_data.get('industry_sector_others', None)
+                INF_Form.job_profile_designation=form_data.get('job_profile_designation', None)
+                INF_Form.job_profile_job_description=form_data.get('job_profile_job_description', None)
+                INF_Form.job_profile_job_description_pdf=form_data.get('job_profile_job_description_pdf', None)
+                INF_Form.job_profile_place_of_posting=form_data.get('job_profile_place_of_posting', None)
+
+                INF_Form.is_draft=save_as_draft
+                INF_Form.timestamp=timezone.now()
+
+                INF_Form.job_profile_six_months_intern=form_data.get('job_profile_six_months_intern', None)
+                INF_Form.job_profile_two_months_intern=form_data.get('job_profile_two_months_intern', None)
+                INF_Form.job_profile_joint_master_thesis_program=form_data.get('job_profile_joint_master_thesis_program', None)
+                
+                INF_Form.contact_details_head_hr=AddContactDetails(form_data.get('contact_details_head_hr', None))  
+                INF_Form.contact_details_first_person_of_contact=AddContactDetails(form_data.get('contact_details_first_person_of_contact', None))
+                INF_Form.contact_details_second_person_of_contact=AddContactDetails(form_data.get('contact_details_second_person_of_contact', None))
+                INF_Form.stipend_details_stipend_amount=form_data.get('stipend_details_stipend_amount', None)
+                INF_Form.stipend_details_bonus_perks_incentives=form_data.get('stipend_details_bonus_perks_incentives', None)
+                INF_Form.stipend_details_accodation_trip_fare=form_data.get('stipend_details_accodation_trip_fare', None)
+                INF_Form.stipend_details_bonus_service_contract=form_data.get('stipend_details_bonus_service_contract', None)
+                INF_Form.selection_process=AddSelectionProcess(form_data.get('selection_process', None))
+                
+                INF_Form.save()
             else:
                 return JsonResponse({'error': 'Invalid form id'}, status=400)
-
-            INF_Form.organisation_name=form_data['organisation_name']
-            INF_Form.organisation_postal_address=form_data['organisation_postal_address']
-            INF_Form.organisation_website=form_data['organisation_website']
-            INF_Form.organisation_type_options=form_data['organisation_type_options']
-            INF_Form.organisation_type_others=form_data['organisation_type_others']
-            INF_Form.industry_sector_options=form_data['industry_sector_options']
-            INF_Form.industry_sector_others=form_data['industry_sector_others']
-            INF_Form.job_profile_designation=form_data['job_profile_designation']
-            INF_Form.job_profile_job_description=form_data['job_profile_job_description']
-            INF_Form.job_profile_job_description_pdf=form_data['job_profile_job_description_pdf']
-            INF_Form.job_profile_place_of_posting=form_data['job_profile_place_of_posting']
-
-            INF_Form.is_draft=save_as_draft
-            INF_Form.timestamp=timezone.now()
-
-            INF_Form.job_profile_six_months_intern=form_data['job_profile_six_months_intern']
-            INF_Form.job_profile_two_months_intern=form_data['job_profile_two_months_intern']
-            INF_Form.job_profile_joint_master_thesis_program=form_data['job_profile_joint_master_thesis_program']
-            
-            INF_Form.contact_details_head_hr=AddContactDetails(form_data['contact_details_head_hr'])  
-            INF_Form.contact_details_first_person_of_contact=AddContactDetails(form_data['contact_details_first_person_of_contact'])
-            INF_Form.contact_details_second_person_of_contact=AddContactDetails(form_data['contact_details_second_person_of_contact'])
-            INF_Form.stipend_details_stipend_amount=form_data['stipend_details_stipend_amount']
-            INF_Form.stipend_details_bonus_perks_incentives=form_data['stipend_details_bonus_perks_incentives']
-            INF_Form.stipend_details_accodation_trip_fare=form_data['stipend_details_accodation_trip_fare']
-            INF_Form.stipend_details_bonus_service_contract=form_data['stipend_details_bonus_service_contract']
-            INF_Form.selection_process=AddSelectionProcess(form_data['selection_process'])
-            
-            INF_Form.save()
 
             if form_id is None:
                 return JsonResponse({'success': 'INF form created successfully'}, status=200)
@@ -346,7 +407,11 @@ def SpocDetails(request):
         if not spoc_info:
             return JsonResponse({'Info': 'No Spoc is currently assigned'}, status=200)
         
+        if( User.objects.filter(email=spoc_info.spocEmail).exists() == False):
+            return JsonResponse({'error': 'Spoc is not present on portal'}, status=400)
+        
         spoc_details = User.objects.get(email=spoc_info.spocEmail)
+
 
         return JsonResponse({'Name':spoc_details.name,'Phone': spoc_details.phone,"Email":spoc_details.email}, status=200)
 
@@ -359,60 +424,3 @@ def DepartmentPrograms(request,degree):
         else:
             return JsonResponse({'error': 'Please provide degree'}, status=400)
         
-
-
-def AddContactDetails(contactInfo):
-    contact_details = ContactDetails.objects.create()
-    contact_details.name = contactInfo['name']
-    contact_details.email = contactInfo['email']
-    contact_details.mobile = contactInfo['mobile']
-    contact_details.phone = contactInfo['phone']
-
-    contact_details.save()
-    return contact_details
-
-def AddSalaryDetails(salaryInfo):
-    salary_details = SalaryDetails.objects.create()
-    salary_details.ctc_gross = salaryInfo['ctc_gross']
-    salary_details.ctc_take_home = salaryInfo['ctc_take_home']
-    salary_details.ctc_bonus_perks = salaryInfo['ctc_bonus_perks']
-    salary_details.bond_contract = salaryInfo['bond_contract']
-    salary_details.save()
-    return salary_details
-
-def AddSelectionProcess(selectionProcessInfo):
-    selection_process = SelectionProcess.objects.create()
-    selection_process.test_type = AddTestType(selectionProcessInfo['test_type'])
-    selection_process.save()
-    
-    selection_process.eligibility_criteria = selectionProcessInfo['eligibility_criteria']
-    selection_process.allow_backlog_students = selectionProcessInfo['allow_backlog_students']
-    selection_process.test_duration = selectionProcessInfo['test_duration']
-    selection_process.likely_topics = selectionProcessInfo['likely_topics']
-    selection_process.number_of_rounds = selectionProcessInfo['number_of_rounds']
-    selection_process.group_discussion_duration = selectionProcessInfo['group_discussion_duration']
-    selection_process.number_of_offers  = selectionProcessInfo['number_of_offers']
-    selection_process.preferred_period = selectionProcessInfo['preferred_period']
-    selection_process.logistics_requirements = selectionProcessInfo['logistics_requirements']
-    selection_process.interested_discipline = AddInterestedDiscipline(selectionProcessInfo['interested_discipline'])
-
-def AddTestType(testTypeInfo):
-    test_type = TestType.objects.create()
-    test_type.ppt = testTypeInfo['ppt']
-    test_type.shortlist_from_resume = testTypeInfo['shortlist_from_resume']
-    test_type.written_test = testTypeInfo['written_test']
-    test_type.online_test = testTypeInfo['online_test']
-    test_type.technical_test = testTypeInfo['technical_test']
-    test_type.aptitude_test = testTypeInfo['aptitude_test']
-    test_type.psychometric_test = testTypeInfo['psychometric_test']
-    test_type.group_discussion = testTypeInfo['group_discussion']
-    test_type.personal_interview = testTypeInfo['personal_interview']
-    test_type.save()
-    return test_type
-
-def AddInterestedDiscipline(interestedDisciplineInfo):
-    interested_discipline = InterestedDiscipline.objects.create()
-    interested_discipline.degree = interestedDisciplineInfo['degree']
-    interested_discipline.branch = interestedDisciplineInfo['branch']
-    interested_discipline.save()
-    return interested_discipline
