@@ -1,5 +1,9 @@
 from django.urls import path
 from .views import *
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 # Define all the URL patterns here
 urlpatterns = [
@@ -19,4 +23,7 @@ urlpatterns = [
 
     path('spocDetails/',SpocDetails),
     path('departmentPrograms/<str:degree>',DepartmentPrograms),
+
+    # make the path for token refresh
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

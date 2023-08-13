@@ -1,4 +1,6 @@
 from .models import *
+from django.conf import settings
+from django.core.mail import EmailMessage
 
 def AddContactDetails(contactInfo):
     if(contactInfo==None):
@@ -125,3 +127,23 @@ def ObjectToJSON_TestType(testType):
         'personal_interview':testType.personal_interview
     }
     return test_type_json
+
+def send_otp(reason, otp_code, email):
+    subject = 'OTP for {reason} {otp_code}'.format(reason=reason, otp_code=otp_code)
+    message = '''
+    Hi,
+    Your OTP for {reason} is {otp_code}. This OTP is valid for 5 minutes only.
+    Please do not share this OTP with anyone.
+    
+    Regards,
+    CDPC Recruiter Portal
+    IIT Ropar
+    '''.format(reason=reason, otp_code=otp_code)
+    
+    receipend_list = [email]
+    from_email = settings.EMAIL_HOST_USER
+    email_message = EmailMessage(subject, message, from_email, receipend_list)
+    if email_message.send(fail_silently=False):
+        return True
+    else:
+        return False
