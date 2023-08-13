@@ -28,21 +28,30 @@ class User(AbstractUser):
         help_text=_('Specific permissions for this user.'),
     )
 
+    def __str__(self):
+        return self.email
+
 class SpocCompany(models.Model):
     spocEmail=models.EmailField(null=False,blank=False)
     HREmail=models.EmailField()
-##  looks redundant
+
+    def __str__(self):
+        return self.spocEmail+"("+self.HREmail+")"
+
 class ContactDetails(models.Model):
     name = models.CharField(max_length=255,null=False,blank=False)
     email = models.EmailField(null=False,blank=False)
-    mobile = models.TextField(null=False,blank=True)
+    mobile = models.TextField(null=True,blank=True)
     phone = models.TextField(null=False,blank=False)
 
+    def __str__(self):
+        return self.name+"("+self.email+")"
+
 class SalaryDetails(models.Model):
-    ctc_gross = models.TextField()
-    ctc_take_home = models.TextField()
-    ctc_bonus_perks = models.TextField()
-    bond_contract = models.TextField()
+    ctc_gross = models.TextField(null=True)
+    ctc_take_home = models.TextField(null=True)
+    ctc_bonus_perks = models.TextField(null=True)
+    bond_contract = models.TextField(null=True)
 
 class TestType(models.Model):
     ppt = models.BooleanField()
@@ -56,8 +65,12 @@ class TestType(models.Model):
     personal_interview = models.BooleanField()
 
 class InterestedDiscipline(models.Model):
-    degree = models.CharField(max_length=50,null=False,blank=False)
+    
+    degree = models.CharField(max_length=50,null=False,blank=False,primary_key=True)
     branch = ArrayField(models.TextField())
+
+    def __str__(self):
+        return self.degree
 
 class SelectionProcess(models.Model):
     eligibility_criteria = models.TextField()
@@ -70,24 +83,23 @@ class SelectionProcess(models.Model):
     number_of_offers = models.PositiveIntegerField()
     preferred_period = models.CharField(max_length=50)
     logistics_requirements = models.TextField()
-    interested_discipline = models.ForeignKey(InterestedDiscipline, on_delete=models.CASCADE)
-
+    interested_discipline = models.TextField()
 
 class Form(models.Model):
-    organisation_name = models.CharField(max_length=255)
-    organisation_postal_address = models.TextField()
-    organisation_website = models.URLField()
+    organisation_name = models.CharField(max_length=255,null=True)
+    organisation_postal_address = models.TextField(null=True)
+    organisation_website = models.URLField(null=True)
     
-    organisation_type_options = ArrayField(models.TextField())
-    organisation_type_others = models.TextField()
+    organisation_type_options = ArrayField(models.TextField(),null=True)
+    organisation_type_others = models.TextField(null=True)
 
-    industry_sector_options = ArrayField(models.TextField())
-    industry_sector_others = models.TextField()
+    industry_sector_options = ArrayField(models.TextField(),null=True)
+    industry_sector_others = models.TextField(null=True)
     
-    job_profile_designation = models.CharField(max_length=255)
-    job_profile_job_description = models.TextField()
-    job_profile_job_description_pdf = ArrayField(models.FileField(upload_to='job_description_pdfs/'))
-    job_profile_place_of_posting = models.CharField(max_length=255)
+    job_profile_designation = models.CharField(max_length=255,null=True)
+    job_profile_job_description = models.TextField(null=True)
+    job_profile_job_description_pdf = models.FileField(upload_to='job_description_pdfs/',null=True)
+    job_profile_place_of_posting = models.CharField(max_length=255,null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_draft = models.BooleanField()
     class Meta:
@@ -102,7 +114,6 @@ class JAFForm(Form):
     salary_details_m_sc = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='m_sc')
     salary_details_phd = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='phd')
     selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processJAF')
-
 
 class INFForm(Form):
     contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrINF')
