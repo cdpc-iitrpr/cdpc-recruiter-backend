@@ -10,7 +10,6 @@ urlpatterns = [
     path('signup/', signup),
     path('login/', signin),
     path('verify/', verify),
-    path('logout/', logout),
     path('signout/', signout),
 
     path('recruiterJAF/',RecruiterJAF),
@@ -19,6 +18,8 @@ urlpatterns = [
     path('recruiterSubmitJAF/<int:form_id>',RecruiterSubmitJAF),
 
     path('recruiterINF/',RecruiterINF),
+    path('recruiterINF/<int:form_id>',RecruiterINF),
+    path('recruiterSubmitINF/',RecruiterSubmitINF),
     path('recruiterSubmitINF/<int:form_id>',RecruiterSubmitINF),
 
     path('spocDetails/',SpocDetails),

@@ -1,19 +1,14 @@
-from django.http import JsonResponse
 from .models import *
 from .utils import *
 from django.contrib.sessions.models import Session
 from django.utils import timezone
-from django.conf import settings
-from django.core.mail import EmailMessage
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import logout
 import json
 import re
 import pyotp
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
-
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -26,7 +21,7 @@ def signup(request):
     email = data.get('email', None)
     name = data.get('name', None)
     phone = data.get('phone', None)
-    role = 'recruiter'  # Only recruiter can signup from this API
+    role = 'recruiter' 
     company_name = data.get('company_name', None)
 
     pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
@@ -59,9 +54,9 @@ def signin(request):
     email = data.get('email', None)
     email_pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     if not email or not re.match(email_pattern, email):
-        return JsonResponse({'error': 'Please provide a valid email'}, status=400)
+        return Response({'error': 'Please provide a valid email'}, status=400)
     if not User.objects.filter(email=email).exists():
-        return JsonResponse({'error': 'User does not exist'}, status=400)
+        return Response({'error': 'User does not exist'}, status=400)
     
     secret_key = pyotp.random_base32()
     otp = pyotp.TOTP(secret_key, interval=300)
@@ -71,9 +66,9 @@ def signin(request):
         request.session['email'] = email
         request.session['secret_key'] = secret_key
         request.session['login'] = True
-        return JsonResponse({'success': 'OTP sent to your email'}, status=200)
+        return Response({'success': 'OTP sent to your email'}, status=200)
     else:
-        return JsonResponse({'error': 'Unable to send OTP'}, status=400)
+        return Response({'error': 'Unable to send OTP'}, status=400)
 
 @api_view(['POST'])
 def verify(request):
@@ -131,24 +126,22 @@ def signout(request):
     logout(request)
     return Response({'success': 'User logged out successfully'}, status=200)
 
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def RecruiterJAF(request,form_id=None):
         
     if request.user.role != 'recruiter':
-        return JsonResponse({'error': 'Please login as recruiter'}, status=400)
+        return Response({'error': 'Please login as recruiter'}, status=400)
     
     email = request.user.email
     if( User.objects.filter(email=email).exists() == False):
-        return JsonResponse({'Error': 'Recruiter is not present on portal'}, status=400)
-    organisation_name=User.objects.get(email=email).company_name
-    # if request contains a form id, then return that form
+        return Response({'error': 'Recruiter is not present on portal'}, status=400)
+    
+
     if form_id is not None:
         JAF_Form = JAFForm.objects.filter(id=form_id).first()
         if not JAF_Form:
-            return JsonResponse({'Error': 'Invalid form id'}, status=400)
+            return Response({'error': 'Invalid form id'}, status=400)
         
         JAF_data = {
             'organisation_name': JAF_Form.organisation_name,
@@ -171,20 +164,21 @@ def RecruiterJAF(request,form_id=None):
             'salary_details_phd': ObjectToJSON_SalaryDetails(JAF_Form.salary_details_phd),
             'selection_process': ObjectToJSON_SelectionProcess(JAF_Form.selection_process)
         } 
-        return JsonResponse( {"Data": JAF_data}, status=200)
-        
+        return Response( {"Data": JAF_data}, status=200)
+    
+    organisation_name=User.objects.get(email=email).company_name 
     JAF_FormList = JAFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft')
-    return JsonResponse({'JAF_list': list(JAF_FormList)}, status=200)
+    return Response({'JAF_list': list(JAF_FormList)}, status=200)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def RecruiterSubmitJAF(request,form_id=None):
 
     if request.user.role != 'recruiter':
-        return JsonResponse({'error': 'Please login as recruiter'}, status=400)
+        return Response({'error': 'Please login as recruiter'}, status=400)
     
     if not request.body:
-        return JsonResponse({'error': 'Please provide JAF form Info'}, status=400)
+        return Response({'error': 'Please provide JAF form Info'}, status=400)
     data = json.loads(request.body)
     save_as_draft = data.get('save_as_draft', None)
     form_data = data.get('form_data', None)
@@ -215,6 +209,7 @@ def RecruiterSubmitJAF(request,form_id=None):
                 salary_details_phd = AddSalaryDetails(form_data['salary_details_phd']),
                 selection_process = AddSelectionProcess(form_data['selection_process'])
             )
+            return Response({'success': 'JAF form created successfully',"form_id":JAF_Form.id}, status=200)
         elif JAFForm.objects.filter(id=form_id).exists:
             JAF_Form=JAFForm.objects.get(id=form_id)
             JAF_Form.organisation_name = form_data.get('organisation_name', None)
@@ -241,33 +236,29 @@ def RecruiterSubmitJAF(request,form_id=None):
             JAF_Form.selection_process = AddSelectionProcess(form_data['selection_process'])
         
             JAF_Form.save()
+            return Response({'success': 'JAF form updated successfully'}, status=200)
         else:
-            return JsonResponse({'error': 'Invalid form id'}, status=400) 
-        
-        if form_id is None:
-            return JsonResponse({'success': 'JAF form created successfully'}, status=200)
-        else:
-            return JsonResponse({'success': 'JAF form updated successfully'}, status=200)
+            return Response({'error': 'Invalid form id'}, status=400) 
     else:
-        return JsonResponse({'error': 'Please provide JAF form data'}, status=400)
+        return Response({'error': 'Please provide JAF form data'}, status=400)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def RecruiterINF(request,form_id=None):
 
     if request.user.role != 'recruiter':
-        return JsonResponse({'error': 'Please login as recruiter'}, status=400)
+        return Response({'error': 'Please login as recruiter'}, status=400)
     
     email = request.user.email
     if( User.objects.filter(email=email).exists() == False):
-        return JsonResponse({'Error': 'Recruiter is not present on portal'}, status=400)
+        return Response({'Error': 'Recruiter is not present on portal'}, status=400)
     
     organisation_name = User.objects.get(email=email).company_name
     # if request contains a form id, then return that form
     if form_id is not None:
         INF_Form = INFForm.objects.filter(id=form_id).first()
         if not INF_Form:
-            return JsonResponse({'Error': 'Invalid form id'}, status=400)
+            return Response({'Error': 'Invalid form id'}, status=400)
         INF_data={
             'organisation_name': INF_Form.organisation_name,
             'organisation_postal_address': INF_Form.organisation_postal_address,
@@ -292,20 +283,20 @@ def RecruiterINF(request,form_id=None):
             'job_profile_joint_master_thesis_program': INF_Form.job_profile_joint_master_thesis_program,
             'selection_process': ObjectToJSON_SelectionProcess(INF_Form.selection_process)
         }
-        return JsonResponse({'Data': INF_data}, status=200)
+        return Response({'Data': INF_data}, status=200)
         
     INF_FormList = INFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft')
-    return JsonResponse({'INF_list': list(INF_FormList)}, status=200)
+    return Response({'INF_list': list(INF_FormList)}, status=200)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def RecruiterSubmitINF(request,form_id=None):
 
     if request.user.role != 'recruiter':
-        return JsonResponse({'error': 'Please login as recruiter'}, status=400)
+        return Response({'error': 'Please login as recruiter'}, status=400)
     
     if not request.body:
-        return JsonResponse({'error': 'Please provide INF form Info'}, status=400)
+        return Response({'error': 'Please provide INF form Info'}, status=400)
     data = json.loads(request.body)
     save_as_draft = data.get('save_as_draft', None)
     form_data = data.get('form_data', None)
@@ -339,6 +330,7 @@ def RecruiterSubmitINF(request,form_id=None):
                 stipend_details_bonus_service_contract=form_data.get('stipend_details_bonus_service_contract', None),
                 selection_process=AddSelectionProcess(form_data.get('selection_process', None))
             )
+            return Response({'success': 'INF form created successfully',"form_id":INF_Form.id}, status=200)
         elif INFForm.objects.filter(id=form_id).exists:
             INF_Form=INFForm.objects.get(id=form_id)
             INF_Form.organisation_name=form_data.get('organisation_name', None)
@@ -368,14 +360,11 @@ def RecruiterSubmitINF(request,form_id=None):
             INF_Form.selection_process=AddSelectionProcess(form_data.get('selection_process', None))
             
             INF_Form.save()
+            return Response({'success': 'INF form updated successfully'}, status=200)
         else:
-            return JsonResponse({'error': 'Invalid form id'}, status=400)
-        if form_id is None:
-            return JsonResponse({'success': 'INF form created successfully'}, status=200)
-        else:
-            return JsonResponse({'success': 'INF form updated successfully'}, status=200)
+            return Response({'error': 'Invalid form id'}, status=400)            
     else:
-        return JsonResponse({'error': 'Please provide INF form Data'}, status=400)
+        return Response({'error': 'Please provide INF form Data'}, status=400)
         
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -401,9 +390,10 @@ def SpocDetails(request):
 @permission_classes([IsAuthenticated])
 def DepartmentPrograms(request,degree):
 
-    if degree is not None:
-        branch = InterestedDiscipline.objects.filter(degree=degree).values('branch')
-        return Response({'branch': list(branch)}, status=200)
-    else:
-        return Response({'error': 'Please provide degree'}, status=400)
+    if not InterestedDiscipline.objects.filter(degree=degree).exists():
+        return Response({'error': 'Invalid degree'}, status=400)
+    
+    branch = InterestedDiscipline.objects.filter(degree=degree).values('branch')
+
+    return Response(branch[0], status=200)
         
