@@ -32,11 +32,12 @@ def AddSelectionProcess(selectionProcessInfo):
     if(selectionProcessInfo==None):
         return None
 
-    # print("###")
+    print("###")
+    print(selectionProcessInfo)
     # # print(selectionProcessInfo['interested_discipline']) 
     # a=InterestedDiscipline.objects.filter(degree= selectionProcessInfo['interested_discipline'])    
     # print(a[0])
-    # print("###")
+    print("###")
 
     selection_process = SelectionProcess.objects.create(
         eligibility_criteria = selectionProcessInfo['eligibility_criteria'] if 'eligibility_criteria' in selectionProcessInfo else None,

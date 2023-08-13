@@ -66,7 +66,6 @@ class TestType(models.Model):
 
 class InterestedDiscipline(models.Model):
     
-    # make degree as primary key
     degree = models.CharField(max_length=50,null=False,blank=False,primary_key=True)
     branch = ArrayField(models.TextField())
 
