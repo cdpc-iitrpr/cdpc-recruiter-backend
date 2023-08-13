@@ -83,7 +83,7 @@ class SelectionProcess(models.Model):
     number_of_offers = models.PositiveIntegerField()
     preferred_period = models.CharField(max_length=50)
     logistics_requirements = models.TextField()
-    interested_discipline = models.ForeignKey(InterestedDiscipline, to_field="degree",on_delete=models.CASCADE)
+    interested_discipline = models.TextField()
 
 class Form(models.Model):
     organisation_name = models.CharField(max_length=255,null=True)

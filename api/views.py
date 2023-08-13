@@ -32,7 +32,6 @@ def send_otp(reason, otp_code, email):
     else:
         return False
 
-# Create your views here.
 @csrf_exempt
 def signup(request):
     if request.method == "POST":
@@ -149,7 +148,6 @@ def signout(request):
     logout(request)
     return JsonResponse({'success': 'User logged out successfully'}, status=200)
 
-
 def RecruiterJAF(request,form_id=None):
     if(request.method=='GET'):
         
@@ -164,7 +162,7 @@ def RecruiterJAF(request,form_id=None):
         email="2020csb1068@oracle.com"
 
         if( User.objects.filter(email=email).exists() == False):
-            return JsonResponse({'error': 'Recruiter is not present on portal'}, status=400)
+            return JsonResponse({'Error': 'Recruiter is not present on portal'}, status=400)
 
         organisation_name=User.objects.get(email=email).company_name
 
@@ -174,9 +172,32 @@ def RecruiterJAF(request,form_id=None):
             JAF_Form = JAFForm.objects.filter(id=form_id).first()
 
             if not JAF_Form:
-                return JsonResponse({'error': 'Invalid form id'}, status=400)
+                return JsonResponse({'Error': 'Invalid form id'}, status=400)
             
-            return JsonResponse({'JAF_form': JAF_Form}, status=200)
+            JAF_data = {
+                'organisation_name': JAF_Form.organisation_name,
+                'organisation_postal_address': JAF_Form.organisation_postal_address,
+                'organisation_website': JAF_Form.organisation_website,
+                'organisation_type_options': JAF_Form.organisation_type_options,
+                'organisation_type_others': JAF_Form.organisation_type_others,
+                'industry_sector_options': JAF_Form.industry_sector_options,
+                'industry_sector_others': JAF_Form.industry_sector_others,
+                'job_profile_designation': JAF_Form.job_profile_designation,
+                'job_profile_job_description': JAF_Form.job_profile_job_description,
+                'job_profile_job_description_pdf': JAF_Form.job_profile_job_description_pdf,
+                'job_profile_place_of_posting': JAF_Form.job_profile_place_of_posting,
+                'contact_details_head_hr': ObjectToJSON_ContactDetails(JAF_Form.contact_details_head_hr),
+                'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(JAF_Form.contact_details_first_person_of_contact),
+                'contact_details_second_person_of_contact': ObjectToJSON_ContactDetails(JAF_Form.contact_details_second_person_of_contact),
+                'salary_details_b_tech': ObjectToJSON_SalaryDetails(JAF_Form.salary_details_b_tech),
+                'salary_details_m_tech': ObjectToJSON_SalaryDetails(JAF_Form.salary_details_m_tech),
+                'salary_details_m_sc': ObjectToJSON_SalaryDetails(JAF_Form.salary_details_m_sc),
+                'salary_details_phd': ObjectToJSON_SalaryDetails(JAF_Form.salary_details_phd),
+                'selection_process': ObjectToJSON_SelectionProcess(JAF_Form.selection_process)
+
+            } 
+
+            return JsonResponse( {"Data": JAF_data}, status=200)
             
         JAF_FormList = JAFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft')
         return JsonResponse({'JAF_list': list(JAF_FormList)}, status=200)
@@ -200,7 +221,7 @@ def RecruiterSubmitJAF(request,form_id=None):
         form_data = data.get('form_data', None)
 
         if form_data:
-            JAF_Form=None
+            JAF_Form=None 
             if( form_id is None):
                 JAF_Form = JAFForm.objects.create(
                     organisation_name = form_data.get('organisation_name', None),
@@ -279,7 +300,7 @@ def RecruiterINF(request,form_id=None):
         email="2020csb1068@oracle.com"
 
         if( User.objects.filter(email=email).exists() == False):
-            return JsonResponse({'error': 'Recruiter is not present on portal'}, status=400)
+            return JsonResponse({'Error': 'Recruiter is not present on portal'}, status=400)
         
         organisation_name = User.objects.get(email=email).company_name
 
@@ -288,9 +309,33 @@ def RecruiterINF(request,form_id=None):
             INF_Form = INFForm.objects.filter(id=form_id).first()
 
             if not INF_Form:
-                return JsonResponse({'error': 'Invalid form id'}, status=400)
+                return JsonResponse({'Error': 'Invalid form id'}, status=400)
 
-            return JsonResponse({'INF_form': INF_Form}, status=200)
+            INF_data={
+                'organisation_name': INF_Form.organisation_name,
+                'organisation_postal_address': INF_Form.organisation_postal_address,
+                'organisation_website': INF_Form.organisation_website,
+                'organisation_type_options': INF_Form.organisation_type_options,
+                'organisation_type_others': INF_Form.organisation_type_others,
+                'industry_sector_options': INF_Form.industry_sector_options,
+                'industry_sector_others': INF_Form.industry_sector_others,
+                'job_profile_designation': INF_Form.job_profile_designation,
+                'job_profile_job_description': INF_Form.job_profile_job_description,
+                'job_profile_job_description_pdf': INF_Form.job_profile_job_description_pdf,
+                'job_profile_place_of_posting': INF_Form.job_profile_place_of_posting,
+                'contact_details_head_hr': ObjectToJSON_ContactDetails(INF_Form.contact_details_head_hr),
+                'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(INF_Form.contact_details_first_person_of_contact),
+                'contact_details_second_person_of_contact': ObjectToJSON_ContactDetails(INF_Form.contact_details_second_person_of_contact),
+                'stipend_details_stipend_amount': INF_Form.stipend_details_stipend_amount,
+                'stipend_details_bonus_perks_incentives': INF_Form.stipend_details_bonus_perks_incentives,
+                'stipend_details_accodation_trip_fare': INF_Form.stipend_details_accodation_trip_fare,
+                'stipend_details_bonus_service_contract': INF_Form.stipend_details_bonus_service_contract,
+                'job_profile_two_months_intern': INF_Form.job_profile_two_months_intern,
+                'job_profile_six_months_intern': INF_Form.job_profile_six_months_intern,
+                'job_profile_joint_master_thesis_program': INF_Form.job_profile_joint_master_thesis_program,
+                'selection_process': ObjectToJSON_SelectionProcess(INF_Form.selection_process)
+            }
+            return JsonResponse({'Data': INF_data}, status=200)
             
         INF_FormList = INFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft')
         return JsonResponse({'INF_list': list(INF_FormList)}, status=200)
@@ -385,8 +430,6 @@ def RecruiterSubmitINF(request,form_id=None):
         else:
             return JsonResponse({'error': 'Please provide INF form Data'}, status=400)
         
-
-# API Working
 def SpocDetails(request):
 
     if(request.method=='GET'):
@@ -414,8 +457,7 @@ def SpocDetails(request):
 
 
         return JsonResponse({'Name':spoc_details.name,'Phone': spoc_details.phone,"Email":spoc_details.email}, status=200)
-
-# API Working   
+  
 def DepartmentPrograms(request,degree):
     if request.method=="GET":
         if degree is not None:

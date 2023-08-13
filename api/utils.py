@@ -32,13 +32,6 @@ def AddSelectionProcess(selectionProcessInfo):
     if(selectionProcessInfo==None):
         return None
 
-    print("###")
-    print(selectionProcessInfo)
-    # # print(selectionProcessInfo['interested_discipline']) 
-    # a=InterestedDiscipline.objects.filter(degree= selectionProcessInfo['interested_discipline'])    
-    # print(a[0])
-    print("###")
-
     selection_process = SelectionProcess.objects.create(
         eligibility_criteria = selectionProcessInfo['eligibility_criteria'] if 'eligibility_criteria' in selectionProcessInfo else None,
         allow_backlog_students = selectionProcessInfo['allow_backlog_students'] if 'allow_backlog_students' in selectionProcessInfo else False,
@@ -49,7 +42,7 @@ def AddSelectionProcess(selectionProcessInfo):
         number_of_offers  = selectionProcessInfo['number_of_offers'] if 'number_of_offers' in selectionProcessInfo else None,
         preferred_period = selectionProcessInfo['preferred_period'] if 'preferred_period' in selectionProcessInfo else None,
         logistics_requirements = selectionProcessInfo['logistics_requirements'] if 'logistics_requirements' in selectionProcessInfo else None,
-        interested_discipline = InterestedDiscipline.objects.get(degree= selectionProcessInfo['interested_discipline']) if 'interested_discipline' in selectionProcessInfo else None,
+        interested_discipline =  selectionProcessInfo['interested_discipline'] if 'interested_discipline' in selectionProcessInfo else None,
         test_type = AddTestType(selectionProcessInfo['test_type']) 
 
     )
@@ -73,3 +66,62 @@ def AddTestType(testTypeInfo):
 
     )
     return test_type
+
+def ObjectToJSON_ContactDetails(contactDetails):
+
+    if(contactDetails==None):
+        return {}
+    contact_details_json = {
+        'name':contactDetails.name,
+        'email':contactDetails.email,
+        'mobile':contactDetails.mobile,
+        'phone':contactDetails.phone
+    }
+    return contact_details_json
+
+def ObjectToJSON_SalaryDetails(salaryDetails):
+    
+    if(salaryDetails==None):
+        return {}
+    salary_details_json = {
+        'ctc_gross':salaryDetails.ctc_gross,
+        'ctc_take_home':salaryDetails.ctc_take_home,
+        'ctc_bonus_perks':salaryDetails.ctc_bonus_perks,
+        'bond_contract':salaryDetails.bond_contract
+    }
+    return salary_details_json
+
+def ObjectToJSON_SelectionProcess(selectionProcess):
+    if(selectionProcess==None):
+        return {}
+
+    selection_process_json = {
+        'eligibility_criteria':selectionProcess.eligibility_criteria,
+        'allow_backlog_students':selectionProcess.allow_backlog_students,
+        'test_duration':selectionProcess.test_duration,
+        'likely_topics':selectionProcess.likely_topics,
+        'number_of_rounds':selectionProcess.number_of_rounds,
+        'group_discussion_duration':selectionProcess.group_discussion_duration,
+        'number_of_offers':selectionProcess.number_of_offers,
+        'preferred_period':selectionProcess.preferred_period,   
+        'logistics_requirements':selectionProcess.logistics_requirements,
+        'interested_discipline':selectionProcess.interested_discipline,
+        'test_type':ObjectToJSON_TestType(selectionProcess.test_type)
+    }
+    return selection_process_json
+
+def ObjectToJSON_TestType(testType):
+    if(testType==None):
+        return {}
+    test_type_json = {
+        'ppt':testType.ppt,
+        'shortlist_from_resume':testType.shortlist_from_resume,
+        'written_test':testType.written_test,
+        'online_test':testType.online_test,
+        'technical_test':testType.technical_test,
+        'aptitude_test':testType.aptitude_test,
+        'psychometric_test':testType.psychometric_test,
+        'group_discussion':testType.group_discussion,
+        'personal_interview':testType.personal_interview
+    }
+    return test_type_json
