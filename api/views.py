@@ -1,3 +1,4 @@
+from wsgiref.util import FileWrapper
 from .models import *
 from .utils import *
 from django.contrib.sessions.models import Session
@@ -10,7 +11,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 
 @api_view(['POST'])
 def signup(request):
@@ -122,9 +124,13 @@ def verify(request):
         return Response({'error': 'Invalid OTP'}, status=400)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def signout(request):
-    logout(request)
-    return Response({'success': 'User logged out successfully'}, status=200)
+    try:
+        print(request.user.auth_token)
+        return Response({'success': 'User logged out successfully'}, status=200)
+    except (AttributeError, ObjectDoesNotExist):
+        return Response({'error': 'Error in logging out'}, status=400)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -397,3 +403,38 @@ def DepartmentPrograms(request,degree):
 
     return Response(branch[0], status=200)
         
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def JDFileUpload(request,form_id):
+
+    if request.user.role != 'recruiter':
+        return Response({'error': 'Please login as recruiter'}, status=400)
+
+    JAF_Form = JAFForm.objects.filter(id=form_id).first()
+
+    if not JAF_Form:
+        return Response({'error': 'Invalid form id'}, status=400)
+
+    if( request.FILES['file'].name != str(form_id)+'.pdf'):
+        return Response({'error': 'Invalid file name'}, status=400)
+    
+    JAF_Form.job_profile_job_description_pdf = request.FILES['file']
+    JAF_Form.save()
+    return Response({'success': 'File uploaded successfully'}, status=200)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def JDFileDownload(request,form_id):
+
+    if request.user.role != 'recruiter':
+        return Response({'error': 'Please login as recruiter'}, status=400)
+
+    file_data=None
+    try:
+        file_data=open('media/job_description_pdfs/'+str(form_id)+'.pdf','rb').read()
+    except:
+        return Response({'error': 'File not found'}, status=400)
+    response=HttpResponse({'success': 'File downloaded successfully','file':FileWrapper(file_data)},content_type='application/pdf')    
+    return response
+    

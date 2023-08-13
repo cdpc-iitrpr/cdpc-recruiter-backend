@@ -98,7 +98,7 @@ class Form(models.Model):
     
     job_profile_designation = models.CharField(max_length=255,null=True)
     job_profile_job_description = models.TextField(null=True)
-    job_profile_job_description_pdf = ArrayField(models.FileField(upload_to='job_description_pdfs/'),null=True)
+    job_profile_job_description_pdf = models.FileField(upload_to='job_description_pdfs/',null=True)
     job_profile_place_of_posting = models.CharField(max_length=255,null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_draft = models.BooleanField()

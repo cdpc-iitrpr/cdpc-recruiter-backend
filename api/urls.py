@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+
 # Define all the URL patterns here
 urlpatterns = [
     path('signup/', signup),
@@ -24,6 +25,9 @@ urlpatterns = [
 
     path('spocDetails/',SpocDetails),
     path('departmentPrograms/<str:degree>',DepartmentPrograms),
+
+    path('jdFileUpload/<int:form_id>/',JDFileUpload),
+    path('jdFileDownload/<int:form_id>/',JDFileDownload),
 
     # make the path for token refresh
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
