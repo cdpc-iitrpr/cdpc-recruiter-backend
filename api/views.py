@@ -95,6 +95,7 @@ def verify(request):
                 if User.objects.filter(email=request.session['email']).exists():
                     return Response({'error': 'User already exists'}, status=400)
                 user = User.objects.create(
+                    username=request.session['email'],
                     email=request.session['email'],
                     name=request.session['name'],
                     phone=request.session['phone'],
@@ -127,9 +128,20 @@ def verify(request):
 @permission_classes([IsAuthenticated])
 def signout(request):
     try:
-        print(request.user.auth_token)
-        return Response({'success': 'User logged out successfully'}, status=200)
-    except (AttributeError, ObjectDoesNotExist):
+        # Get the refresh token from the request header
+        refresh_token = request.data.get('refresh_token')
+
+        if refresh_token:
+            # Decode the refresh token to get the token object
+            token = RefreshToken(refresh_token)
+            # Blacklist the token to invalidate it
+            token.blacklist()
+
+            return Response({'success': 'User logged out successfully'}, status=200)
+        else:
+            return Response({'error': 'Refresh token not provided'}, status=400)
+    except Exception as e:
+        print("Error:", e)
         return Response({'error': 'Error in logging out'}, status=400)
 
 @api_view(['GET'])
