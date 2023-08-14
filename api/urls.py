@@ -23,6 +23,11 @@ urlpatterns = [
     path('recruiterSubmitINF/',RecruiterSubmitINF),
     path('recruiterSubmitINF/<int:form_id>',RecruiterSubmitINF),
 
+    path('spocJAF/',SpocJAF),
+    path('spocJAF/<int:form_id>',SpocJAF),
+    path('spocINF/',SpocINF),
+    path('spocINF/<int:form_id>',SpocINF),  
+
     path('spocDetails/',SpocDetails),
     path('departmentPrograms/<str:degree>',DepartmentPrograms),
 

@@ -450,3 +450,120 @@ def JDFileDownload(request,form_id):
     response=HttpResponse({'success': 'File downloaded successfully','file':FileWrapper(file_data)},content_type='application/pdf')    
     return response
     
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def SpocJAF(request,form_id=None):
+
+    if request.user.role != 'Spoc':
+        return Response({'error': 'Please login as Spoc'}, status=400)
+    
+    email=request.user.email
+
+    HR_list = SpocCompany.objects.filter(spocEmail=email).values('HREmail')
+
+
+
+    if not HR_list:
+        return Response({'error': 'No company is currently assigned'}, status=400)
+
+    organisation_name_list = set()
+
+
+    for HR in HR_list:
+        organisation_name_list.add(User.objects.get(email=HR['HREmail']).company_name)
+
+
+    if form_id is not None:
+        JAF_Form = JAFForm.objects.filter(id=form_id).first()
+        if not JAF_Form:
+            return Response({'error': 'Invalid form id'}, status=400)
+        
+        if JAF_Form.organisation_name not in organisation_name_list:
+            return Response({'error': 'Not spoc of respective company'}, status=400)
+
+        JAF_data = {
+            'organisation_name': JAF_Form.organisation_name,
+            'organisation_postal_address': JAF_Form.organisation_postal_address,
+            'organisation_website': JAF_Form.organisation_website,
+            'organisation_type_options': JAF_Form.organisation_type_options,
+            'organisation_type_others': JAF_Form.organisation_type_others,
+            'industry_sector_options': JAF_Form.industry_sector_options,
+            'industry_sector_others': JAF_Form.industry_sector_others,
+            'job_profile_designation': JAF_Form.job_profile_designation,
+            'job_profile_job_description': JAF_Form.job_profile_job_description,
+            'job_profile_job_description_pdf': JAF_Form.job_profile_job_description_pdf,
+            'job_profile_place_of_posting': JAF_Form.job_profile_place_of_posting,
+            'contact_details_head_hr': ObjectToJSON_ContactDetails(JAF_Form.contact_details_head_hr),
+            'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(JAF_Form.contact_details_first_person_of_contact),
+            'contact_details_second_person_of_contact': ObjectToJSON_ContactDetails(JAF_Form.contact_details_second_person_of_contact),
+            'salary_details_b_tech': ObjectToJSON_SalaryDetails(JAF_Form.salary_details_b_tech),
+            'salary_details_m_tech': ObjectToJSON_SalaryDetails(JAF_Form.salary_details_m_tech),
+            'salary_details_m_sc': ObjectToJSON_SalaryDetails(JAF_Form.salary_details_m_sc),
+            'salary_details_phd': ObjectToJSON_SalaryDetails(JAF_Form.salary_details_phd),
+            'selection_process': ObjectToJSON_SelectionProcess(JAF_Form.selection_process)
+        } 
+        return Response( {"Data": JAF_data}, status=200)
+    
+    JAF_FormList = JAFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft')
+
+    return Response({'JAF_list': list(JAF_FormList)}, status=200)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def SpocINF(request,form_id=None):
+    if request.user.role != 'Spoc':
+        return Response({'error': 'Please login as Spoc'}, status=400)
+    
+    email=request.user.email
+
+    HR_list = SpocCompany.objects.filter(spocEmail=email).values('HREmail')
+
+
+
+    if not HR_list:
+        return Response({'error': 'No company is currently assigned'}, status=400)
+
+    organisation_name_list = set()
+
+
+    for HR in HR_list:
+        organisation_name_list.add(User.objects.get(email=HR['HREmail']).company_name)
+
+
+    if form_id is not None:
+        INF_Form = INFForm.objects.filter(id=form_id).first()
+        if not INF_Form:
+            return Response({'error': 'Invalid form id'}, status=400)
+        
+        if INF_Form.organisation_name not in organisation_name_list:
+            return Response({'error': 'Not spoc of respective company'}, status=400)
+
+        INF_data={
+            'organisation_name': INF_Form.organisation_name,
+            'organisation_postal_address': INF_Form.organisation_postal_address,
+            'organisation_website': INF_Form.organisation_website,
+            'organisation_type_options': INF_Form.organisation_type_options,
+            'organisation_type_others': INF_Form.organisation_type_others,
+            'industry_sector_options': INF_Form.industry_sector_options,
+            'industry_sector_others': INF_Form.industry_sector_others,
+            'job_profile_designation': INF_Form.job_profile_designation,
+            'job_profile_job_description': INF_Form.job_profile_job_description,
+            'job_profile_job_description_pdf': INF_Form.job_profile_job_description_pdf,
+            'job_profile_place_of_posting': INF_Form.job_profile_place_of_posting,
+            'contact_details_head_hr': ObjectToJSON_ContactDetails(INF_Form.contact_details_head_hr),
+            'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(INF_Form.contact_details_first_person_of_contact),
+            'contact_details_second_person_of_contact': ObjectToJSON_ContactDetails(INF_Form.contact_details_second_person_of_contact),
+            'stipend_details_stipend_amount': INF_Form.stipend_details_stipend_amount,
+            'stipend_details_bonus_perks_incentives': INF_Form.stipend_details_bonus_perks_incentives,
+            'stipend_details_accodation_trip_fare': INF_Form.stipend_details_accodation_trip_fare,
+            'stipend_details_bonus_service_contract': INF_Form.stipend_details_bonus_service_contract,
+            'job_profile_two_months_intern': INF_Form.job_profile_two_months_intern,
+            'job_profile_six_months_intern': INF_Form.job_profile_six_months_intern,
+            'job_profile_joint_master_thesis_program': INF_Form.job_profile_joint_master_thesis_program,
+            'selection_process': ObjectToJSON_SelectionProcess(INF_Form.selection_process)
+        }
+    
+    INF_FormList = INFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft')
+
+    return Response({'JAF_list': list(INF_FormList)}, status=200)
