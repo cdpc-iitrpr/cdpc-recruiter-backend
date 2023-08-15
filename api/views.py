@@ -112,13 +112,15 @@ def verify(request):
                     })
         elif 'login' in request.session:
             if request.session['login']:
-                user = User.objects.get(email=request.session['email'])
+                email = request.session['email']
+                user = User.objects.get(email=email)
                 del request.session['login']
                 token_obj = RefreshToken.for_user(user = user)
                 return Response({
                     "login": True,
                     'refresh':str(token_obj),
-                    'access':str(token_obj.access_token)
+                    'access':str(token_obj.access_token),
+                    'user': User.objects.filter(email=email).values('name', 'phone', 'role', 'company_name', 'email', 'role')[0]
                     })
     else:
         return Response({'error': 'Invalid OTP'}, status=400)
