@@ -167,6 +167,7 @@ def RecruiterJAF(request,form_id=None):
             'organisation_name': JAF_Form.organisation_name,
             'organisation_postal_address': JAF_Form.organisation_postal_address,
             'organisation_website': JAF_Form.organisation_website,
+            'versionTitle': JAF_Form.versionTitle,
             'organisation_type_options': JAF_Form.organisation_type_options,
             'organisation_type_others': JAF_Form.organisation_type_others,
             'industry_sector_options': JAF_Form.industry_sector_options,
@@ -187,7 +188,7 @@ def RecruiterJAF(request,form_id=None):
         return Response( {"Data": JAF_data}, status=200)
     
     organisation_name=User.objects.get(email=email).company_name 
-    JAF_FormList = JAFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft')
+    JAF_FormList = JAFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft','versionTitle')
     return Response({'JAF_list': list(JAF_FormList)}, status=200)
 
 @api_view(['POST'])
@@ -209,6 +210,7 @@ def RecruiterSubmitJAF(request,form_id=None):
                 organisation_name = form_data.get('organisation_name', None),
                 organisation_postal_address = form_data.get('organisation_postal_address', None),
                 organisation_website = form_data.get('organisation_website', None),
+                versionTitle=form_data.get('versionTitle', None),
                 organisation_type_options = form_data.get('organisation_type_options', None),
                 organisation_type_others = form_data.get('organisation_type_others', None),
                 industry_sector_options = form_data.get('industry_sector_options', None),
@@ -235,6 +237,7 @@ def RecruiterSubmitJAF(request,form_id=None):
             JAF_Form.organisation_name = form_data.get('organisation_name', None)
             JAF_Form.organisation_postal_address = form_data.get('organisation_postal_address', None)
             JAF_Form.organisation_website = form_data.get('organisation_website', None)
+            JAF_Form.versionTitle=form_data.get('versionTitle', None)
             JAF_Form.organisation_type_options = form_data.get('organisation_type_options', None)
             JAF_Form.organisation_type_others = form_data.get('organisation_type_others', None)
             JAF_Form.industry_sector_options = form_data.get('industry_sector_options', None)
@@ -283,6 +286,7 @@ def RecruiterINF(request,form_id=None):
             'organisation_name': INF_Form.organisation_name,
             'organisation_postal_address': INF_Form.organisation_postal_address,
             'organisation_website': INF_Form.organisation_website,
+            'versionTitle': INF_Form.versionTitle,
             'organisation_type_options': INF_Form.organisation_type_options,
             'organisation_type_others': INF_Form.organisation_type_others,
             'industry_sector_options': INF_Form.industry_sector_options,
@@ -305,7 +309,7 @@ def RecruiterINF(request,form_id=None):
         }
         return Response({'Data': INF_data}, status=200)
         
-    INF_FormList = INFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft')
+    INF_FormList = INFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft','versionTitle')
     return Response({'INF_list': list(INF_FormList)}, status=200)
 
 @api_view(['POST'])
@@ -327,6 +331,7 @@ def RecruiterSubmitINF(request,form_id=None):
                 organisation_name=form_data.get('organisation_name', None),
                 organisation_postal_address=form_data.get('organisation_postal_address', None),
                 organisation_website=form_data.get('organisation_website', None),
+                versionTitle=form_data.get('versionTitle', None),
                 organisation_type_options=form_data.get('organisation_type_options', None),
                 organisation_type_others=form_data.get('organisation_type_others', None),
                 industry_sector_options=form_data.get('industry_sector_options', None),
@@ -356,6 +361,7 @@ def RecruiterSubmitINF(request,form_id=None):
             INF_Form.organisation_name=form_data.get('organisation_name', None)
             INF_Form.organisation_postal_address=form_data.get('organisation_postal_address', None)
             INF_Form.organisation_website=form_data.get('organisation_website', None)
+            INF_Form.versionTitle=form_data.get('versionTitle', None)
             INF_Form.organisation_type_options=form_data.get('organisation_type_options', None)
             INF_Form.organisation_type_others=form_data.get('organisation_type_others', None)
             INF_Form.industry_sector_options=form_data.get('industry_sector_options', None)
@@ -488,6 +494,7 @@ def SpocJAF(request,form_id=None):
             'organisation_name': JAF_Form.organisation_name,
             'organisation_postal_address': JAF_Form.organisation_postal_address,
             'organisation_website': JAF_Form.organisation_website,
+            'versionTitle': JAF_Form.versionTitle,
             'organisation_type_options': JAF_Form.organisation_type_options,
             'organisation_type_others': JAF_Form.organisation_type_others,
             'industry_sector_options': JAF_Form.industry_sector_options,
@@ -507,7 +514,7 @@ def SpocJAF(request,form_id=None):
         } 
         return Response( {"Data": JAF_data}, status=200)
     
-    JAF_FormList = JAFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft')
+    JAF_FormList = JAFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle')
 
     return Response({'JAF_list': list(JAF_FormList)}, status=200)
     
@@ -545,6 +552,7 @@ def SpocINF(request,form_id=None):
             'organisation_name': INF_Form.organisation_name,
             'organisation_postal_address': INF_Form.organisation_postal_address,
             'organisation_website': INF_Form.organisation_website,
+            'versionTitle': INF_Form.versionTitle,
             'organisation_type_options': INF_Form.organisation_type_options,
             'organisation_type_others': INF_Form.organisation_type_others,
             'industry_sector_options': INF_Form.industry_sector_options,
@@ -566,6 +574,6 @@ def SpocINF(request,form_id=None):
             'selection_process': ObjectToJSON_SelectionProcess(INF_Form.selection_process)
         }
     
-    INF_FormList = INFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft')
+    INF_FormList = INFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle')
 
     return Response({'JAF_list': list(INF_FormList)}, status=200)

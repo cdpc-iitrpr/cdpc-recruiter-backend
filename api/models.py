@@ -88,7 +88,8 @@ class Form(models.Model):
     organisation_name = models.CharField(max_length=255,null=True)
     organisation_postal_address = models.TextField(null=True)
     organisation_website = models.URLField(null=True)
-    
+    versionTitle = models.CharField(max_length=255,null=True)
+
     organisation_type_options = ArrayField(models.TextField(),null=True)
     organisation_type_others = models.TextField(null=True)
 
