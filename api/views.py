@@ -187,8 +187,8 @@ def RecruiterJAF(request,form_id=None):
         } 
         return Response( {"Data": JAF_data}, status=200)
     
-    organisation_name=User.objects.get(email=email).company_name 
-    JAF_FormList = JAFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft','versionTitle')
+    user_email = User.objects.get(email=email)
+    JAF_FormList = JAFForm.objects.filter(submitted_by=user_email).values('id', 'timestamp', 'is_draft','versionTitle')
     return Response({'JAF_list': list(JAF_FormList)}, status=200)
 
 @api_view(['POST'])
@@ -203,14 +203,23 @@ def RecruiterSubmitJAF(request,form_id=None):
     data = json.loads(request.body)
     save_as_draft = data.get('save_as_draft', None)
     form_data = data.get('form_data', None)
+    versionTitle = data.get('versionTitle', None)
+    submitted_by = User.objects.get(email=request.user.email)
+
+    if JAFForm.objects.filter(versionTitle=versionTitle, submitted_by=submitted_by).exists():
+        return Response({'error': 'JAF form with this version title already exists'}, status=400)
+
+
+
     if form_data:
         JAF_Form=None 
         if( form_id is None):
             JAF_Form = JAFForm.objects.create(
+                submitted_by = submitted_by,
                 organisation_name = form_data.get('organisation_name', None),
                 organisation_postal_address = form_data.get('organisation_postal_address', None),
                 organisation_website = form_data.get('organisation_website', None),
-                versionTitle=form_data.get('versionTitle', None),
+                versionTitle=versionTitle,
                 organisation_type_options = form_data.get('organisation_type_options', None),
                 organisation_type_others = form_data.get('organisation_type_others', None),
                 industry_sector_options = form_data.get('industry_sector_options', None),
@@ -234,10 +243,11 @@ def RecruiterSubmitJAF(request,form_id=None):
             return Response({'success': 'JAF form created successfully',"form_id":JAF_Form.id}, status=200)
         elif JAFForm.objects.filter(id=form_id).exists:
             JAF_Form=JAFForm.objects.get(id=form_id)
+            JAF_Form.submitted_by = submitted_by
             JAF_Form.organisation_name = form_data.get('organisation_name', None)
             JAF_Form.organisation_postal_address = form_data.get('organisation_postal_address', None)
             JAF_Form.organisation_website = form_data.get('organisation_website', None)
-            JAF_Form.versionTitle=form_data.get('versionTitle', None)
+            JAF_Form.versionTitle=versionTitle
             JAF_Form.organisation_type_options = form_data.get('organisation_type_options', None)
             JAF_Form.organisation_type_others = form_data.get('organisation_type_others', None)
             JAF_Form.industry_sector_options = form_data.get('industry_sector_options', None)
@@ -276,7 +286,6 @@ def RecruiterINF(request,form_id=None):
     if( User.objects.filter(email=email).exists() == False):
         return Response({'Error': 'Recruiter is not present on portal'}, status=400)
     
-    organisation_name = User.objects.get(email=email).company_name
     # if request contains a form id, then return that form
     if form_id is not None:
         INF_Form = INFForm.objects.filter(id=form_id).first()
@@ -309,7 +318,8 @@ def RecruiterINF(request,form_id=None):
         }
         return Response({'Data': INF_data}, status=200)
         
-    INF_FormList = INFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft','versionTitle')
+    user_email = User.objects.get(email=email)
+    INF_FormList = INFForm.objects.filter(submitted_by=user_email).values('id', 'timestamp', 'is_draft','versionTitle')
     return Response({'INF_list': list(INF_FormList)}, status=200)
 
 @api_view(['POST'])
@@ -324,14 +334,23 @@ def RecruiterSubmitINF(request,form_id=None):
     data = json.loads(request.body)
     save_as_draft = data.get('save_as_draft', None)
     form_data = data.get('form_data', None)
+    versionTitle = data.get('versionTitle', None)
+    submitted_by = User.objects.get(email=request.user.email)
+
+    if INFForm.objects.filter(versionTitle=versionTitle, submitted_by=submitted_by).exists():
+        return Response({'error': 'INF form with this version title already exists'}, status=400)
+
+
+        
     if form_data:
         INF_Form=None
         if( form_id is None):
             INF_Form = INFForm.objects.create(
+                submitted_by=submitted_by,
                 organisation_name=form_data.get('organisation_name', None),
                 organisation_postal_address=form_data.get('organisation_postal_address', None),
                 organisation_website=form_data.get('organisation_website', None),
-                versionTitle=form_data.get('versionTitle', None),
+                versionTitle=versionTitle,
                 organisation_type_options=form_data.get('organisation_type_options', None),
                 organisation_type_others=form_data.get('organisation_type_others', None),
                 industry_sector_options=form_data.get('industry_sector_options', None),
@@ -358,10 +377,11 @@ def RecruiterSubmitINF(request,form_id=None):
             return Response({'success': 'INF form created successfully',"form_id":INF_Form.id}, status=200)
         elif INFForm.objects.filter(id=form_id).exists:
             INF_Form=INFForm.objects.get(id=form_id)
+            INF_Form.submitted_by=submitted_by
             INF_Form.organisation_name=form_data.get('organisation_name', None)
             INF_Form.organisation_postal_address=form_data.get('organisation_postal_address', None)
             INF_Form.organisation_website=form_data.get('organisation_website', None)
-            INF_Form.versionTitle=form_data.get('versionTitle', None)
+            INF_Form.versionTitle=versionTitle
             INF_Form.organisation_type_options=form_data.get('organisation_type_options', None)
             INF_Form.organisation_type_others=form_data.get('organisation_type_others', None)
             INF_Form.industry_sector_options=form_data.get('industry_sector_options', None)
@@ -455,7 +475,7 @@ def JDFileDownload(request,form_id):
         file_data=open('media/job_description_pdfs/'+str(form_id)+'.pdf','rb').read()
     except:
         return Response({'error': 'File not found'}, status=400)
-    response=HttpResponse({'success': 'File downloaded successfully','file':FileWrapper(file_data)},content_type='application/pdf')    
+    response=HttpResponse(file_data,content_type='application/pdf')    
     return response
     
 
@@ -463,7 +483,7 @@ def JDFileDownload(request,form_id):
 @permission_classes([IsAuthenticated])
 def SpocJAF(request,form_id=None):
 
-    if request.user.role != 'Spoc':
+    if request.user.role.lower() != 'spoc':
         return Response({'error': 'Please login as Spoc'}, status=400)
     
     email=request.user.email
@@ -514,14 +534,14 @@ def SpocJAF(request,form_id=None):
         } 
         return Response( {"Data": JAF_data}, status=200)
     
-    JAF_FormList = JAFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle')
+    JAF_FormList = JAFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
 
     return Response({'JAF_list': list(JAF_FormList)}, status=200)
     
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def SpocINF(request,form_id=None):
-    if request.user.role != 'Spoc':
+    if request.user.role.lower() != 'spoc':
         return Response({'error': 'Please login as Spoc'}, status=400)
     
     email=request.user.email
@@ -573,7 +593,8 @@ def SpocINF(request,form_id=None):
             'job_profile_joint_master_thesis_program': INF_Form.job_profile_joint_master_thesis_program,
             'selection_process': ObjectToJSON_SelectionProcess(INF_Form.selection_process)
         }
+        return Response({'Data': INF_data}, status=200)
     
-    INF_FormList = INFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle')
+    INF_FormList = INFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
 
     return Response({'JAF_list': list(INF_FormList)}, status=200)
