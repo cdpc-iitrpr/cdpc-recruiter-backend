@@ -187,8 +187,8 @@ def RecruiterJAF(request,form_id=None):
         } 
         return Response( {"Data": JAF_data}, status=200)
     
-    organisation_name=User.objects.get(email=email).company_name 
-    JAF_FormList = JAFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft','versionTitle')
+    user_email = User.objects.get(email=email)
+    JAF_FormList = JAFForm.objects.filter(submitted_by=user_email).values('id', 'timestamp', 'is_draft','versionTitle')
     return Response({'JAF_list': list(JAF_FormList)}, status=200)
 
 @api_view(['POST'])
@@ -286,7 +286,6 @@ def RecruiterINF(request,form_id=None):
     if( User.objects.filter(email=email).exists() == False):
         return Response({'Error': 'Recruiter is not present on portal'}, status=400)
     
-    organisation_name = User.objects.get(email=email).company_name
     # if request contains a form id, then return that form
     if form_id is not None:
         INF_Form = INFForm.objects.filter(id=form_id).first()
@@ -319,7 +318,8 @@ def RecruiterINF(request,form_id=None):
         }
         return Response({'Data': INF_data}, status=200)
         
-    INF_FormList = INFForm.objects.filter(organisation_name=organisation_name).values('id', 'timestamp', 'is_draft','versionTitle')
+    user_email = User.objects.get(email=email)
+    INF_FormList = INFForm.objects.filter(submitted_by=user_email).values('id', 'timestamp', 'is_draft','versionTitle')
     return Response({'INF_list': list(INF_FormList)}, status=200)
 
 @api_view(['POST'])
@@ -475,7 +475,7 @@ def JDFileDownload(request,form_id):
         file_data=open('media/job_description_pdfs/'+str(form_id)+'.pdf','rb').read()
     except:
         return Response({'error': 'File not found'}, status=400)
-    response=HttpResponse({'success': 'File downloaded successfully','file':FileWrapper(file_data)},content_type='application/pdf')    
+    response=HttpResponse(file_data,content_type='application/pdf')    
     return response
     
 
@@ -483,7 +483,7 @@ def JDFileDownload(request,form_id):
 @permission_classes([IsAuthenticated])
 def SpocJAF(request,form_id=None):
 
-    if request.user.role != 'Spoc':
+    if request.user.role.lower() != 'spoc':
         return Response({'error': 'Please login as Spoc'}, status=400)
     
     email=request.user.email
@@ -534,14 +534,14 @@ def SpocJAF(request,form_id=None):
         } 
         return Response( {"Data": JAF_data}, status=200)
     
-    JAF_FormList = JAFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle')
+    JAF_FormList = JAFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
 
     return Response({'JAF_list': list(JAF_FormList)}, status=200)
     
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def SpocINF(request,form_id=None):
-    if request.user.role != 'Spoc':
+    if request.user.role.lower() != 'spoc':
         return Response({'error': 'Please login as Spoc'}, status=400)
     
     email=request.user.email
@@ -593,7 +593,8 @@ def SpocINF(request,form_id=None):
             'job_profile_joint_master_thesis_program': INF_Form.job_profile_joint_master_thesis_program,
             'selection_process': ObjectToJSON_SelectionProcess(INF_Form.selection_process)
         }
+        return Response({'Data': INF_data}, status=200)
     
-    INF_FormList = INFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle')
+    INF_FormList = INFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
 
     return Response({'JAF_list': list(INF_FormList)}, status=200)
