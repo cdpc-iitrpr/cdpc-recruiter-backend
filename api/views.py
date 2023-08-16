@@ -203,6 +203,9 @@ def RecruiterSubmitJAF(request,form_id=None):
     data = json.loads(request.body)
     save_as_draft = data.get('save_as_draft', None)
     form_data = data.get('form_data', None)
+    versionTitle = data.get('versionTitle', None)    
+
+
     if form_data:
         JAF_Form=None 
         if( form_id is None):
@@ -210,7 +213,7 @@ def RecruiterSubmitJAF(request,form_id=None):
                 organisation_name = form_data.get('organisation_name', None),
                 organisation_postal_address = form_data.get('organisation_postal_address', None),
                 organisation_website = form_data.get('organisation_website', None),
-                versionTitle=form_data.get('versionTitle', None),
+                versionTitle=versionTitle,
                 organisation_type_options = form_data.get('organisation_type_options', None),
                 organisation_type_others = form_data.get('organisation_type_others', None),
                 industry_sector_options = form_data.get('industry_sector_options', None),
@@ -237,7 +240,7 @@ def RecruiterSubmitJAF(request,form_id=None):
             JAF_Form.organisation_name = form_data.get('organisation_name', None)
             JAF_Form.organisation_postal_address = form_data.get('organisation_postal_address', None)
             JAF_Form.organisation_website = form_data.get('organisation_website', None)
-            JAF_Form.versionTitle=form_data.get('versionTitle', None)
+            JAF_Form.versionTitle=versionTitle
             JAF_Form.organisation_type_options = form_data.get('organisation_type_options', None)
             JAF_Form.organisation_type_others = form_data.get('organisation_type_others', None)
             JAF_Form.industry_sector_options = form_data.get('industry_sector_options', None)
@@ -324,6 +327,10 @@ def RecruiterSubmitINF(request,form_id=None):
     data = json.loads(request.body)
     save_as_draft = data.get('save_as_draft', None)
     form_data = data.get('form_data', None)
+    versionTitle = data.get('versionTitle', None)
+
+
+        
     if form_data:
         INF_Form=None
         if( form_id is None):
@@ -331,7 +338,7 @@ def RecruiterSubmitINF(request,form_id=None):
                 organisation_name=form_data.get('organisation_name', None),
                 organisation_postal_address=form_data.get('organisation_postal_address', None),
                 organisation_website=form_data.get('organisation_website', None),
-                versionTitle=form_data.get('versionTitle', None),
+                versionTitle=versionTitle,
                 organisation_type_options=form_data.get('organisation_type_options', None),
                 organisation_type_others=form_data.get('organisation_type_others', None),
                 industry_sector_options=form_data.get('industry_sector_options', None),
@@ -361,7 +368,7 @@ def RecruiterSubmitINF(request,form_id=None):
             INF_Form.organisation_name=form_data.get('organisation_name', None)
             INF_Form.organisation_postal_address=form_data.get('organisation_postal_address', None)
             INF_Form.organisation_website=form_data.get('organisation_website', None)
-            INF_Form.versionTitle=form_data.get('versionTitle', None)
+            INF_Form.versionTitle=versionTitle
             INF_Form.organisation_type_options=form_data.get('organisation_type_options', None)
             INF_Form.organisation_type_others=form_data.get('organisation_type_others', None)
             INF_Form.industry_sector_options=form_data.get('industry_sector_options', None)
