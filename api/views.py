@@ -206,6 +206,10 @@ def RecruiterSubmitJAF(request,form_id=None):
     versionTitle = data.get('versionTitle', None)
     submitted_by = User.objects.get(email=request.user.email)
 
+    if JAFForm.objects.filter(versionTitle=versionTitle, submitted_by=submitted_by).exists():
+        return Response({'error': 'JAF form with this version title already exists'}, status=400)
+
+
 
     if form_data:
         JAF_Form=None 
@@ -332,6 +336,10 @@ def RecruiterSubmitINF(request,form_id=None):
     form_data = data.get('form_data', None)
     versionTitle = data.get('versionTitle', None)
     submitted_by = User.objects.get(email=request.user.email)
+
+    if INFForm.objects.filter(versionTitle=versionTitle, submitted_by=submitted_by).exists():
+        return Response({'error': 'INF form with this version title already exists'}, status=400)
+
 
         
     if form_data:
