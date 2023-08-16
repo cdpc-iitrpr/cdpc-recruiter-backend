@@ -85,6 +85,7 @@ class SelectionProcess(models.Model):
     interested_discipline = models.TextField()
 
 class Form(models.Model):
+    submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     organisation_name = models.CharField(max_length=255,null=True)
     organisation_postal_address = models.TextField(null=True)
     organisation_website = models.URLField(null=True)

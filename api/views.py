@@ -203,13 +203,15 @@ def RecruiterSubmitJAF(request,form_id=None):
     data = json.loads(request.body)
     save_as_draft = data.get('save_as_draft', None)
     form_data = data.get('form_data', None)
-    versionTitle = data.get('versionTitle', None)    
+    versionTitle = data.get('versionTitle', None)
+    submitted_by = User.objects.get(email=request.user.email)
 
 
     if form_data:
         JAF_Form=None 
         if( form_id is None):
             JAF_Form = JAFForm.objects.create(
+                submitted_by = submitted_by,
                 organisation_name = form_data.get('organisation_name', None),
                 organisation_postal_address = form_data.get('organisation_postal_address', None),
                 organisation_website = form_data.get('organisation_website', None),
@@ -237,6 +239,7 @@ def RecruiterSubmitJAF(request,form_id=None):
             return Response({'success': 'JAF form created successfully',"form_id":JAF_Form.id}, status=200)
         elif JAFForm.objects.filter(id=form_id).exists:
             JAF_Form=JAFForm.objects.get(id=form_id)
+            JAF_Form.submitted_by = submitted_by
             JAF_Form.organisation_name = form_data.get('organisation_name', None)
             JAF_Form.organisation_postal_address = form_data.get('organisation_postal_address', None)
             JAF_Form.organisation_website = form_data.get('organisation_website', None)
@@ -328,13 +331,14 @@ def RecruiterSubmitINF(request,form_id=None):
     save_as_draft = data.get('save_as_draft', None)
     form_data = data.get('form_data', None)
     versionTitle = data.get('versionTitle', None)
-
+    submitted_by = User.objects.get(email=request.user.email)
 
         
     if form_data:
         INF_Form=None
         if( form_id is None):
             INF_Form = INFForm.objects.create(
+                submitted_by=submitted_by,
                 organisation_name=form_data.get('organisation_name', None),
                 organisation_postal_address=form_data.get('organisation_postal_address', None),
                 organisation_website=form_data.get('organisation_website', None),
@@ -365,6 +369,7 @@ def RecruiterSubmitINF(request,form_id=None):
             return Response({'success': 'INF form created successfully',"form_id":INF_Form.id}, status=200)
         elif INFForm.objects.filter(id=form_id).exists:
             INF_Form=INFForm.objects.get(id=form_id)
+            INF_Form.submitted_by=submitted_by
             INF_Form.organisation_name=form_data.get('organisation_name', None)
             INF_Form.organisation_postal_address=form_data.get('organisation_postal_address', None)
             INF_Form.organisation_website=form_data.get('organisation_website', None)
