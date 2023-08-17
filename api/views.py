@@ -146,6 +146,15 @@ def signout(request):
         print("Error:", e)
         return Response({'error': 'Error in logging out'}, status=400)
 
+def fileObjectsToJson(fileObjectList):
+    files = []
+    for fileObject in fileObjectList:
+        file = {}
+        file['id'] = fileObject.id
+        file['file_name'] = fileObject.file_name
+        files.append(file)
+    return files
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def RecruiterJAF(request,form_id=None):
@@ -174,7 +183,7 @@ def RecruiterJAF(request,form_id=None):
             'industry_sector_others': JAF_Form.industry_sector_others,
             'job_profile_designation': JAF_Form.job_profile_designation,
             'job_profile_job_description': JAF_Form.job_profile_job_description,
-            'job_profile_job_description_pdf': JAF_Form.job_profile_job_description_pdf,
+            'job_profile_job_description_pdf': fileObjectsToJson(JAF_Form.job_profile_job_description_pdf.all()),
             'job_profile_place_of_posting': JAF_Form.job_profile_place_of_posting,
             'contact_details_head_hr': ObjectToJSON_ContactDetails(JAF_Form.contact_details_head_hr),
             'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(JAF_Form.contact_details_first_person_of_contact),
@@ -190,6 +199,12 @@ def RecruiterJAF(request,form_id=None):
     user_email = User.objects.get(email=email)
     JAF_FormList = JAFForm.objects.filter(submitted_by=user_email).values('id', 'timestamp', 'is_draft','versionTitle')
     return Response({'JAF_list': list(JAF_FormList)}, status=200)
+
+def processFileList(filesList):
+    files = []
+    for file in filesList:
+        files.append(FileObject.objects.get(id = file.id))
+    return files
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -226,7 +241,6 @@ def RecruiterSubmitJAF(request,form_id=None):
                 industry_sector_others = form_data.get('industry_sector_others', None),
                 job_profile_designation = form_data.get('job_profile_designation', None),
                 job_profile_job_description = form_data.get('job_profile_job_description', None),
-                job_profile_job_description_pdf = form_data.get('job_profile_job_description_pdf', None),
                 job_profile_place_of_posting = form_data.get('job_profile_place_of_posting', None),
                 is_draft = save_as_draft, 
                 timestamp = timezone.now(),
@@ -240,6 +254,8 @@ def RecruiterSubmitJAF(request,form_id=None):
                 salary_details_phd = AddSalaryDetails(form_data['salary_details_phd']),
                 selection_process = AddSelectionProcess(form_data['selection_process'])
             )
+            JAF_Form.job_profile_job_description_pdf.add(*processFileList(form_data['job_profile_job_description_pdf']))
+            JAF_Form.save()
             return Response({'success': 'JAF form created successfully',"form_id":JAF_Form.id}, status=200)
         elif JAFForm.objects.filter(id=form_id).exists:
             JAF_Form=JAFForm.objects.get(id=form_id)
@@ -254,7 +270,8 @@ def RecruiterSubmitJAF(request,form_id=None):
             JAF_Form.industry_sector_others = form_data.get('industry_sector_others', None)
             JAF_Form.job_profile_designation = form_data.get('job_profile_designation', None)
             JAF_Form.job_profile_job_description = form_data.get('job_profile_job_description', None)
-            JAF_Form.job_profile_job_description_pdf = form_data.get('job_profile_job_description_pdf', None)
+            JAF_Form.job_profile_job_description_pdf.clear()
+            JAF_Form.job_profile_job_description_pdf.add(*processFileList(form_data['job_profile_job_description_pdf']))
             JAF_Form.job_profile_place_of_posting = form_data.get('job_profile_place_of_posting', None)
             JAF_Form.is_draft = save_as_draft
             JAF_Form.timestamp = timezone.now()
@@ -302,7 +319,7 @@ def RecruiterINF(request,form_id=None):
             'industry_sector_others': INF_Form.industry_sector_others,
             'job_profile_designation': INF_Form.job_profile_designation,
             'job_profile_job_description': INF_Form.job_profile_job_description,
-            'job_profile_job_description_pdf': INF_Form.job_profile_job_description_pdf,
+            'job_profile_job_description_pdf': fileObjectsToJson(INF_Form.job_profile_job_description_pdf.all()),
             'job_profile_place_of_posting': INF_Form.job_profile_place_of_posting,
             'contact_details_head_hr': ObjectToJSON_ContactDetails(INF_Form.contact_details_head_hr),
             'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(INF_Form.contact_details_first_person_of_contact),
@@ -357,7 +374,6 @@ def RecruiterSubmitINF(request,form_id=None):
                 industry_sector_others=form_data.get('industry_sector_others', None),
                 job_profile_designation=form_data.get('job_profile_designation', None),
                 job_profile_job_description=form_data.get('job_profile_job_description', None),
-                job_profile_job_description_pdf=form_data.get('job_profile_job_description_pdf', None),
                 job_profile_place_of_posting=form_data.get('job_profile_place_of_posting', None),
                 is_draft=save_as_draft,
                 timestamp=timezone.now(),
@@ -374,6 +390,8 @@ def RecruiterSubmitINF(request,form_id=None):
                 stipend_details_bonus_service_contract=form_data.get('stipend_details_bonus_service_contract', None),
                 selection_process=AddSelectionProcess(form_data.get('selection_process', None))
             )
+            INF_Form.job_profile_job_description_pdf.add(*processFileList(form_data['job_profile_job_description_pdf']))
+            INF_Form.save()
             return Response({'success': 'INF form created successfully',"form_id":INF_Form.id}, status=200)
         elif INFForm.objects.filter(id=form_id).exists:
             INF_Form=INFForm.objects.get(id=form_id)
@@ -388,7 +406,8 @@ def RecruiterSubmitINF(request,form_id=None):
             INF_Form.industry_sector_others=form_data.get('industry_sector_others', None)
             INF_Form.job_profile_designation=form_data.get('job_profile_designation', None)
             INF_Form.job_profile_job_description=form_data.get('job_profile_job_description', None)
-            INF_Form.job_profile_job_description_pdf=form_data.get('job_profile_job_description_pdf', None)
+            INF_Form.job_profile_job_description_pdf.clear()
+            INF_Form.job_profile_job_description_pdf.add(*processFileList(form_data['job_profile_job_description_pdf']))
             INF_Form.job_profile_place_of_posting=form_data.get('job_profile_place_of_posting', None)
             INF_Form.is_draft=save_as_draft
             INF_Form.timestamp=timezone.now()
@@ -444,39 +463,70 @@ def DepartmentPrograms(request,degree):
     return Response(branch[0], status=200)
         
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def JDFileUpload(request,form_id):
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def JDFileUpload(request,form_id):
 
-    if request.user.role != 'recruiter':
-        return Response({'error': 'Please login as recruiter'}, status=400)
+#     if request.user.role != 'recruiter':
+#         return Response({'error': 'Please login as recruiter'}, status=400)
 
-    JAF_Form = JAFForm.objects.filter(id=form_id).first()
+#     JAF_Form = JAFForm.objects.filter(id=form_id).first()
 
-    if not JAF_Form:
-        return Response({'error': 'Invalid form id'}, status=400)
+#     if not JAF_Form:
+#         return Response({'error': 'Invalid form id'}, status=400)
 
-    if( request.FILES['file'].name != str(form_id)+'.pdf'):
-        return Response({'error': 'Invalid file name'}, status=400)
+#     if( request.FILES['file'].name != str(form_id)+'.pdf'):
+#         return Response({'error': 'Invalid file name'}, status=400)
     
-    JAF_Form.job_profile_job_description_pdf = request.FILES['file']
-    JAF_Form.save()
-    return Response({'success': 'File uploaded successfully'}, status=200)
+#     JAF_Form.job_profile_job_description_pdf = request.FILES['file']
+#     JAF_Form.save()
+#     return Response({'success': 'File uploaded successfully'}, status=200)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def JDFileDownload(request,form_id):
-
+def JDFileUpload(request):
     if request.user.role != 'recruiter':
         return Response({'error': 'Please login as recruiter'}, status=400)
-
-    file_data=None
+    
     try:
-        file_data=open('media/job_description_pdfs/'+str(form_id)+'.pdf','rb').read()
+        uploadedFileObject = FileObject.objects.create(file=request.FILES['file'],file_name=request.FILES['file'].name, uploaded_by=request.user)
+        uploadedFileObject.save()
+        response = {
+            'id': uploadedFileObject.id,
+            'file_name': uploadedFileObject.file_name,
+        }
+        return Response(response, status=200)
+    except:
+        return Response({'error': 'Unsupported format or file-size'}, status=400)
+
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def JDFileDownload(request,form_id):
+
+#     if request.user.role != 'recruiter':
+#         return Response({'error': 'Please login as recruiter'}, status=400)
+
+#     file_data=None
+#     try:
+#         file_data=open('media/job_description_pdfs/'+str(form_id)+'.pdf','rb').read()
+#     except:
+#         return Response({'error': 'File not found'}, status=400)
+#     response=HttpResponse(file_data,content_type='application/pdf')    
+#     return response
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def JDFileDownload(request, id):
+    try:
+        myFile = FileObject.objects.get(id=id)
+        if(request.user.role != 'recruiter' or myFile.uploaded_by == request.user):
+            response = HttpResponse(myFile.file, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename='+myFile.file_name
+        else:
+            response = Response({'error': 'You are not authorised to download this file'}, status=400)
+        return response
     except:
         return Response({'error': 'File not found'}, status=400)
-    response=HttpResponse(file_data,content_type='application/pdf')    
-    return response
     
 
 @api_view(['GET'])
@@ -521,7 +571,7 @@ def SpocJAF(request,form_id=None):
             'industry_sector_others': JAF_Form.industry_sector_others,
             'job_profile_designation': JAF_Form.job_profile_designation,
             'job_profile_job_description': JAF_Form.job_profile_job_description,
-            'job_profile_job_description_pdf': JAF_Form.job_profile_job_description_pdf,
+            'job_profile_job_description_pdf': fileObjectsToJson(JAF_Form.job_profile_job_description_pdf.all()),
             'job_profile_place_of_posting': JAF_Form.job_profile_place_of_posting,
             'contact_details_head_hr': ObjectToJSON_ContactDetails(JAF_Form.contact_details_head_hr),
             'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(JAF_Form.contact_details_first_person_of_contact),
@@ -579,7 +629,7 @@ def SpocINF(request,form_id=None):
             'industry_sector_others': INF_Form.industry_sector_others,
             'job_profile_designation': INF_Form.job_profile_designation,
             'job_profile_job_description': INF_Form.job_profile_job_description,
-            'job_profile_job_description_pdf': INF_Form.job_profile_job_description_pdf,
+            'job_profile_job_description_pdf': fileObjectsToJson(INF_Form.job_profile_job_description_pdf.all()),
             'job_profile_place_of_posting': INF_Form.job_profile_place_of_posting,
             'contact_details_head_hr': ObjectToJSON_ContactDetails(INF_Form.contact_details_head_hr),
             'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(INF_Form.contact_details_first_person_of_contact),
