@@ -108,7 +108,7 @@ class Form(models.Model):
     
     job_profile_designation = models.CharField(max_length=255,null=True)
     job_profile_job_description = models.TextField(null=True)
-    job_profile_job_description_pdf = models.ManyToManyField(FileObject, related_name='job_profile_job_description_pdf', blank=True, null=True)
+    job_profile_job_description_pdf = models.ManyToManyField(FileObject,  blank=True, null=True)
     job_profile_place_of_posting = models.CharField(max_length=255,null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_draft = models.BooleanField()

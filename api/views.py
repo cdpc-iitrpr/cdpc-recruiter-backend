@@ -204,7 +204,7 @@ def RecruiterJAF(request,form_id=None):
 def processFileList(filesList):
     files = []
     for file in filesList:
-        files.append(FileObject.objects.get(id = file.id))
+        files.append(FileObject.objects.get(id = file['id']))
     return files
 
 @api_view(['POST'])
