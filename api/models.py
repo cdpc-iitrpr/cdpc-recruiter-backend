@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
 from django.utils.translation import gettext_lazy as _
+from random import randint
 # Create your models here.
 
 class User(AbstractUser):
@@ -84,6 +85,14 @@ class SelectionProcess(models.Model):
     logistics_requirements = models.TextField()
     interested_discipline = models.TextField()
 
+def fileSavePath(instance, filename):
+    random_number = randint(1000000000, 9999999999)
+    return 'jaf_pdfs/{0}/{1}_{2}'.format(instance.id, random_number, filename)
+class FileObject(models.Model):
+    file = models.FileField(upload_to=fileSavePath, null=True, blank=True)
+    file_name = models.CharField(max_length=255, null=True, blank=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+
 class Form(models.Model):
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     organisation_name = models.CharField(max_length=255,null=True)
@@ -99,7 +108,7 @@ class Form(models.Model):
     
     job_profile_designation = models.CharField(max_length=255,null=True)
     job_profile_job_description = models.TextField(null=True)
-    job_profile_job_description_pdf = models.FileField(upload_to='job_description_pdfs/',null=True)
+    job_profile_job_description_pdf = models.ManyToManyField(FileObject, related_name='job_profile_job_description_pdf', blank=True, null=True)
     job_profile_place_of_posting = models.CharField(max_length=255,null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_draft = models.BooleanField()
