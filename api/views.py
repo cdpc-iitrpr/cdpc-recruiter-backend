@@ -109,7 +109,8 @@ def verify(request):
                 return Response({
                     "login": True,
                     'refresh':str(token_obj),
-                    'access':str(token_obj.access_token)
+                    'access':str(token_obj.access_token),
+                    'user': User.objects.filter(email=request.session['email']).values('name', 'phone', 'role', 'company_name', 'email', 'role')[0]
                     })
         elif 'login' in request.session:
             if request.session['login']:
@@ -284,13 +285,13 @@ def RecruiterINF(request,form_id=None):
     
     email = request.user.email
     if( User.objects.filter(email=email).exists() == False):
-        return Response({'Error': 'Recruiter is not present on portal'}, status=400)
+        return Response({'error': 'Recruiter is not present on portal'}, status=400)
     
     # if request contains a form id, then return that form
     if form_id is not None:
         INF_Form = INFForm.objects.filter(id=form_id).first()
         if not INF_Form:
-            return Response({'Error': 'Invalid form id'}, status=400)
+            return Response({'error': 'Invalid form id'}, status=400)
         INF_data={
             'organisation_name': INF_Form.organisation_name,
             'organisation_postal_address': INF_Form.organisation_postal_address,
@@ -424,7 +425,7 @@ def SpocDetails(request):
     spoc_info = SpocCompany.objects.filter(HREmail=email).first()
     
     if not spoc_info:
-        return Response({'Info': 'No Spoc is currently assigned'}, status=200)
+        return Response({'error': 'No Spoc is currently assigned'}, status=200)
     
     if( User.objects.filter(email=spoc_info.spocEmail).exists() == False):
         return Response({'error': 'Spoc is not present on portal'}, status=400)
