@@ -495,11 +495,19 @@ def SpocJAF(request,form_id=None):
     if not HR_list:
         return Response({'error': 'No company is currently assigned'}, status=400)
 
-    organisation_name_list = set()
+    # organisation_name_list = set()
 
+
+    # for HR in HR_list:
+    #     organisation_name_list.add(User.objects.get(email=HR['HREmail']).company_name)
+
+    HR_list_id = set()
 
     for HR in HR_list:
-        organisation_name_list.add(User.objects.get(email=HR['HREmail']).company_name)
+        HR_list_id.add(User.objects.get(email=HR['HREmail']).id)
+
+    HR_list_email = [User.objects.get(id=HR_id).email for HR_id in HR_list_id]
+    HR_list = HR_list_id
 
 
     if form_id is not None:
@@ -507,7 +515,10 @@ def SpocJAF(request,form_id=None):
         if not JAF_Form:
             return Response({'error': 'Invalid form id'}, status=400)
         
-        if JAF_Form.organisation_name not in organisation_name_list:
+        # if JAF_Form.organisation_name not in organisation_name_list:
+        #     return Response({'error': 'Not spoc of respective company'}, status=400)
+
+        if JAF_Form.submitted_by.email not in HR_list_email:
             return Response({'error': 'Not spoc of respective company'}, status=400)
 
         JAF_data = {
@@ -534,7 +545,8 @@ def SpocJAF(request,form_id=None):
         } 
         return Response( {"Data": JAF_data}, status=200)
     
-    JAF_FormList = JAFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
+    # JAF_FormList = JAFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
+    JAF_FormList = JAFForm.objects.filter(submitted_by__in=HR_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
 
     return Response({'JAF_list': list(JAF_FormList)}, status=200)
     
@@ -553,11 +565,19 @@ def SpocINF(request,form_id=None):
     if not HR_list:
         return Response({'error': 'No company is currently assigned'}, status=400)
 
-    organisation_name_list = set()
+    # organisation_name_list = set()
 
+
+    # for HR in HR_list:
+    #     organisation_name_list.add(User.objects.get(email=HR['HREmail']).company_name)
+
+    HR_list_id = set()
 
     for HR in HR_list:
-        organisation_name_list.add(User.objects.get(email=HR['HREmail']).company_name)
+        HR_list_id.add(User.objects.get(email=HR['HREmail']).id)
+
+    HR_list_email = [User.objects.get(id=HR_id).email for HR_id in HR_list_id]
+    HR_list = HR_list_id
 
 
     if form_id is not None:
@@ -565,8 +585,12 @@ def SpocINF(request,form_id=None):
         if not INF_Form:
             return Response({'error': 'Invalid form id'}, status=400)
         
-        if INF_Form.organisation_name not in organisation_name_list:
+        # if INF_Form.organisation_name not in organisation_name_list:
+        #     return Response({'error': 'Not spoc of respective company'}, status=400)
+
+        if INF_Form.submitted_by.email not in HR_list_email:
             return Response({'error': 'Not spoc of respective company'}, status=400)
+
 
         INF_data={
             'organisation_name': INF_Form.organisation_name,
@@ -595,6 +619,8 @@ def SpocINF(request,form_id=None):
         }
         return Response({'Data': INF_data}, status=200)
     
-    INF_FormList = INFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
+    # INF_FormList = INFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
+    
+    INF_FormList = INFForm.objects.filter(submitted_by__in=HR_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
 
     return Response({'INF_list': list(INF_FormList)}, status=200)
