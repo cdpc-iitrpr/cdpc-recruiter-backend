@@ -174,7 +174,7 @@ def RecruiterJAF(request,form_id=None):
             'industry_sector_others': JAF_Form.industry_sector_others,
             'job_profile_designation': JAF_Form.job_profile_designation,
             'job_profile_job_description': JAF_Form.job_profile_job_description,
-            'job_profile_job_description_pdf': JAF_Form.job_profile_job_description_pdf,
+            # 'job_profile_job_description_pdf': JAF_Form.job_profile_job_description_pdf,
             'job_profile_place_of_posting': JAF_Form.job_profile_place_of_posting,
             'contact_details_head_hr': ObjectToJSON_ContactDetails(JAF_Form.contact_details_head_hr),
             'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(JAF_Form.contact_details_first_person_of_contact),
@@ -302,7 +302,7 @@ def RecruiterINF(request,form_id=None):
             'industry_sector_others': INF_Form.industry_sector_others,
             'job_profile_designation': INF_Form.job_profile_designation,
             'job_profile_job_description': INF_Form.job_profile_job_description,
-            'job_profile_job_description_pdf': INF_Form.job_profile_job_description_pdf,
+            # 'job_profile_job_description_pdf': INF_Form.job_profile_job_description_pdf,
             'job_profile_place_of_posting': INF_Form.job_profile_place_of_posting,
             'contact_details_head_hr': ObjectToJSON_ContactDetails(INF_Form.contact_details_head_hr),
             'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(INF_Form.contact_details_first_person_of_contact),
@@ -521,7 +521,7 @@ def SpocJAF(request,form_id=None):
             'industry_sector_others': JAF_Form.industry_sector_others,
             'job_profile_designation': JAF_Form.job_profile_designation,
             'job_profile_job_description': JAF_Form.job_profile_job_description,
-            'job_profile_job_description_pdf': JAF_Form.job_profile_job_description_pdf,
+            # 'job_profile_job_description_pdf': JAF_Form.job_profile_job_description_pdf,
             'job_profile_place_of_posting': JAF_Form.job_profile_place_of_posting,
             'contact_details_head_hr': ObjectToJSON_ContactDetails(JAF_Form.contact_details_head_hr),
             'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(JAF_Form.contact_details_first_person_of_contact),
@@ -579,7 +579,7 @@ def SpocINF(request,form_id=None):
             'industry_sector_others': INF_Form.industry_sector_others,
             'job_profile_designation': INF_Form.job_profile_designation,
             'job_profile_job_description': INF_Form.job_profile_job_description,
-            'job_profile_job_description_pdf': INF_Form.job_profile_job_description_pdf,
+            # 'job_profile_job_description_pdf': INF_Form.job_profile_job_description_pdf,
             'job_profile_place_of_posting': INF_Form.job_profile_place_of_posting,
             'contact_details_head_hr': ObjectToJSON_ContactDetails(INF_Form.contact_details_head_hr),
             'contact_details_first_person_of_contact': ObjectToJSON_ContactDetails(INF_Form.contact_details_first_person_of_contact),
@@ -597,4 +597,4 @@ def SpocINF(request,form_id=None):
     
     INF_FormList = INFForm.objects.filter(organisation_name__in=organisation_name_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
 
-    return Response({'JAF_list': list(INF_FormList)}, status=200)
+    return Response({'INF_list': list(INF_FormList)}, status=200)
