@@ -83,7 +83,7 @@ class SelectionProcess(models.Model):
     number_of_offers = models.PositiveIntegerField()
     preferred_period = models.CharField(max_length=50)
     logistics_requirements = models.TextField()
-    interested_discipline = models.TextField()
+    interested_discipline = models.JSONField()
 
 def fileSavePath(instance, filename):
     random_number = randint(1000000000, 9999999999)
@@ -138,3 +138,21 @@ class INFForm(Form):
     stipend_details_accodation_trip_fare = models.TextField()
     stipend_details_bonus_service_contract = models.TextField()
     selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processINF')
+
+class Branch(models.Model):
+    name = models.CharField(max_length=255,null=False,blank=False,primary_key=True)
+    shortcut = models.CharField(max_length=10,null=False,blank=False)
+    # degree choices
+
+    class Degree(models.TextChoices):
+        BTECH = 'BTech', _('BTech')
+        BTECHMINOR = 'BTech with minor in', _('BTech with minor in')
+        DUALDEGREE = 'Dual Degree', _('Dual Degree')
+        MTECH = 'MTech', _('MTech')
+        MSC = 'MSc', _('MSc')
+        PHD = 'PhD', _('PhD')
+
+    degree = models.CharField(choices=Degree.choices, max_length= 30)
+
+    def __str__(self):
+        return self.name

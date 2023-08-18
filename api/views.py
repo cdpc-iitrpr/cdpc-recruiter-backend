@@ -675,3 +675,18 @@ def SpocINF(request,form_id=None):
     INF_FormList = INFForm.objects.filter(submitted_by__in=HR_list).values('id', 'timestamp', 'is_draft','versionTitle','submitted_by')
 
     return Response({'INF_list': list(INF_FormList)}, status=200)
+
+@api_view(['GET'])
+def GetBranches(request):
+    output = {
+        'BTech': [],
+        'BTech with minor in': [],
+        'Dual Degree': [],
+        'MTech': [],
+        'MSc': [],
+        'PhD': []
+    }
+    for branch in Branch.objects.all():
+        output[branch.degree].append(branch.shortcut)
+    return Response(output, status=200)
+    

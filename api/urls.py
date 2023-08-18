@@ -34,6 +34,7 @@ urlpatterns = [
     path('jdFileUpload/',JDFileUpload),
     path('jdFileDownload/<int:id>/',JDFileDownload),
 
+    path('getdegree',GetBranches),
     # make the path for token refresh
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
