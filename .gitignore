@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+recruiter_portal_api/__pycache__/
 
 # Virtual environment
 venv/

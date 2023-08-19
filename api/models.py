@@ -31,6 +31,11 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
+class UserOTP(models.Model):
+    email = models.EmailField(unique=True,null=False,blank=False)
+    secret_key = models.CharField(max_length=255,null=False,blank=False)
+    created_at = models.DateTimeField(auto_now=True)
+
 class SpocCompany(models.Model):
     spocEmail=models.EmailField(null=False,blank=False)
     HREmail=models.EmailField()

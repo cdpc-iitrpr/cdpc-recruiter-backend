@@ -1,7 +1,6 @@
 from wsgiref.util import FileWrapper
 from .models import *
 from .utils import *
-from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.contrib.auth import logout
 import json
@@ -37,15 +36,22 @@ def signup(request):
     otp = pyotp.TOTP(secret_key, interval=300)
     otp_code = otp.now()
     
-    
     if send_otp('signup', otp_code, email):
-        request.session['email'] = email
-        request.session['secret_key'] = secret_key
-        request.session['name'] = name
-        request.session['phone'] = phone
-        request.session['role'] = role
-        request.session['company_name'] = company_name
-        request.session['signup'] = True
+        user = User.objects.create(
+            username=email,
+            email=email,
+            name=name,
+            phone=phone,
+            role=role,
+            company_name=company_name
+        )
+        user.save()
+
+        user_otp=UserOTP.objects.create(
+            email=email,
+            secret_key=secret_key
+        )
+        user_otp.save()
         return Response({'success': 'OTP sent to your email'}, status=200)
     else:
         return Response({'error': 'Unable to send OTP'}, status=400)
@@ -65,9 +71,18 @@ def signin(request):
     otp_code = otp.now()
     
     if send_otp('login', otp_code, email):
-        request.session['email'] = email
-        request.session['secret_key'] = secret_key
-        request.session['login'] = True
+
+        if(UserOTP.objects.filter(email=email).exists()):
+            user_otp_obj = UserOTP.objects.get(email=email)
+            user_otp_obj.secret_key = secret_key
+            user_otp_obj.save()
+        else:
+            UserOTP.objects.create(
+                email=email,
+                secret_key=secret_key
+            )
+            UserOTP.save()
+
         return Response({'success': 'OTP sent to your email'}, status=200)
     else:
         return Response({'error': 'Unable to send OTP'}, status=400)
@@ -76,54 +91,26 @@ def signin(request):
 def verify(request):
     data = json.loads(request.body)
     otp_code = data.get('otp', None)
+    email = data.get('email', None)
     if not otp_code:
         return Response({'error': 'Please provide OTP'}, status=400)
-    if 'signup' in request.session:
-        if not request.session['signup']:
-            return Response({'error': 'Please signup first'}, status=400)
-    elif 'login' in request.session:
-        if not request.session['login']:
-            return Response({'error': 'Please login first'}, status=400)
-    else:
-        return Response({'error': 'Please signup or login first'}, status=400)
-    
-    otp = pyotp.TOTP(request.session['secret_key'], interval=300)
+
+    if User.objects.filter(email=email).exists() == False:
+        return Response({'error': 'User does not exist'}, status=400)
+
+    user = User.objects.get(email=email)
+    user_otp_obj = UserOTP.objects.get(email=email)
+
+    otp = pyotp.TOTP(user_otp_obj.secret_key, interval=300)
 
     if otp.verify(otp_code):
-        if 'signup' in request.session:
-            if request.session['signup']:
-                if User.objects.filter(email=request.session['email']).exists():
-                    return Response({'error': 'User already exists'}, status=400)
-                user = User.objects.create(
-                    username=request.session['email'],
-                    email=request.session['email'],
-                    name=request.session['name'],
-                    phone=request.session['phone'],
-                    role=request.session['role'],
-                    company_name=request.session['company_name']
-                )
-                user.save()
-                del request.session['signup']
-
-                token_obj = RefreshToken.for_user(user = user)
-                return Response({
-                    "login": True,
-                    'refresh':str(token_obj),
-                    'access':str(token_obj.access_token),
-                    'user': User.objects.filter(email=request.session['email']).values('name', 'phone', 'role', 'company_name', 'email', 'role')[0]
-                    })
-        elif 'login' in request.session:
-            if request.session['login']:
-                email = request.session['email']
-                user = User.objects.get(email=email)
-                del request.session['login']
-                token_obj = RefreshToken.for_user(user = user)
-                return Response({
-                    "login": True,
-                    'refresh':str(token_obj),
-                    'access':str(token_obj.access_token),
-                    'user': User.objects.filter(email=email).values('name', 'phone', 'role', 'company_name', 'email', 'role')[0]
-                    })
+        token_obj = RefreshToken.for_user(user = user)
+        return Response({
+            "login": True,
+            'refresh':str(token_obj),
+            'access':str(token_obj.access_token),
+            'user': User.objects.filter(email=email).values('name', 'phone', 'role', 'company_name', 'email', 'role')[0]
+        })
     else:
         return Response({'error': 'Invalid OTP'}, status=400)
 
