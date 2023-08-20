@@ -44,10 +44,10 @@ class SpocCompany(models.Model):
         return self.spocEmail+"("+self.HREmail+")"
 
 class ContactDetails(models.Model):
-    name = models.CharField(max_length=255,null=False,blank=False)
-    email = models.EmailField(null=False,blank=False)
+    name = models.CharField(max_length=255,null=True,blank=True)
+    email = models.EmailField(null=True,blank=True)
     mobile = models.TextField(null=True,blank=True)
-    phone = models.TextField(null=False,blank=False)
+    phone = models.TextField(null=True,blank=True)
 
     def __str__(self):
         return self.name+"("+self.email+")"
@@ -59,15 +59,15 @@ class SalaryDetails(models.Model):
     bond_contract = models.TextField(null=True)
 
 class TestType(models.Model):
-    ppt = models.BooleanField()
-    shortlist_from_resume = models.BooleanField()
-    written_test = models.BooleanField()
-    online_test = models.BooleanField()
-    technical_test = models.BooleanField()
-    aptitude_test = models.BooleanField()
-    psychometric_test = models.BooleanField()
-    group_discussion = models.BooleanField()
-    personal_interview = models.BooleanField()
+    ppt = models.BooleanField(null=True)
+    shortlist_from_resume = models.BooleanField(null=True)
+    written_test = models.BooleanField(null=True)
+    online_test = models.BooleanField(null=True)
+    technical_test = models.BooleanField(null=True)
+    aptitude_test = models.BooleanField(null=True)
+    psychometric_test = models.BooleanField(null=True)
+    group_discussion = models.BooleanField(null=True)
+    personal_interview = models.BooleanField(null=True)
 
 class InterestedDiscipline(models.Model):
     
@@ -78,17 +78,17 @@ class InterestedDiscipline(models.Model):
         return self.degree
 
 class SelectionProcess(models.Model):
-    eligibility_criteria = models.TextField()
-    allow_backlog_students = models.BooleanField()
-    test_type = models.ForeignKey(TestType, on_delete=models.CASCADE)
-    test_duration = models.CharField(max_length=50)
-    likely_topics = models.TextField()
-    number_of_rounds = models.PositiveIntegerField()
-    group_discussion_duration = models.CharField(max_length=50)
-    number_of_offers = models.PositiveIntegerField()
-    preferred_period = models.CharField(max_length=50)
-    logistics_requirements = models.TextField()
-    interested_discipline = models.JSONField()
+    eligibility_criteria = models.TextField(null=True,blank=True)
+    allow_backlog_students = models.BooleanField(null=True,blank=True)
+    test_type = models.ForeignKey(TestType, on_delete=models.CASCADE,null=True,blank=True)
+    test_duration = models.CharField(max_length=50,null=True,blank=True)
+    likely_topics = models.TextField(null=True,blank=True)
+    number_of_rounds = models.PositiveIntegerField(null=True,blank=True)
+    group_discussion_duration = models.CharField(max_length=50,null=True,blank=True)
+    number_of_offers = models.PositiveIntegerField(null=True,blank=True)
+    preferred_period = models.CharField(max_length=50,null=True,blank=True)
+    logistics_requirements = models.TextField(null=True,blank=True)
+    interested_discipline = models.JSONField(null=True,blank=True)
 
 def fileSavePath(instance, filename):
     random_number = randint(1000000000, 9999999999)
@@ -99,50 +99,50 @@ class FileObject(models.Model):
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
 class Form(models.Model):
-    submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    organisation_name = models.CharField(max_length=255,null=True)
-    organisation_postal_address = models.TextField(null=True)
-    organisation_website = models.URLField(null=True)
-    versionTitle = models.CharField(max_length=255,null=True)
+    submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True,blank=True)
+    organisation_name = models.CharField(max_length=255,null=True,blank=True)
+    organisation_postal_address = models.TextField(null=True,blank=True)
+    organisation_website = models.URLField(null=True,blank=True)
+    versionTitle = models.CharField(max_length=255,null=True,blank=True)
 
-    organisation_type_options = ArrayField(models.TextField(),null=True)
-    organisation_type_others = models.TextField(null=True)
+    organisation_type_options = ArrayField(models.TextField(),null=True,blank=True)
+    organisation_type_others = models.TextField(null=True,blank=True)
 
-    industry_sector_options = ArrayField(models.TextField(),null=True)
-    industry_sector_others = models.TextField(null=True)
+    industry_sector_options = ArrayField(models.TextField(),null=True,blank=True)
+    industry_sector_others = models.TextField(null=True,blank=True)
     
-    job_profile_designation = models.CharField(max_length=255,null=True)
-    job_profile_job_description = models.TextField(null=True)
+    job_profile_designation = models.CharField(max_length=255,null=True,blank=True)
+    job_profile_job_description = models.TextField(null=True,blank=True)
     job_profile_job_description_pdf = models.ManyToManyField(FileObject,  blank=True, null=True)
-    job_profile_place_of_posting = models.CharField(max_length=255,null=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    is_draft = models.BooleanField()
+    job_profile_place_of_posting = models.CharField(max_length=255,null=True,blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True,blank=True)
+    is_draft = models.BooleanField(null=False,blank=False)
     class Meta:
         abstract = True
 
 class JAFForm(Form):
-    contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrJAF')
-    contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contactJAF')
-    contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contactJAF')
-    salary_details_b_tech = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='b_tech')
-    salary_details_m_tech = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='m_tech')
-    salary_details_m_sc = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='m_sc')
-    salary_details_phd = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='phd')
-    selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processJAF')
+    contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrJAF', null=True, blank=True)
+    contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contactJAF',null=True, blank=True)
+    contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contactJAF',null=True, blank=True)
+    salary_details_b_tech = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='b_tech',null=True, blank=True)
+    salary_details_m_tech = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='m_tech',null=True, blank=True)
+    salary_details_m_sc = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='m_sc',null=True, blank=True)
+    salary_details_phd = models.ForeignKey(SalaryDetails, on_delete=models.CASCADE, related_name='phd',null=True, blank=True)
+    selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processJAF',null=True, blank=True)
 
 class INFForm(Form):
-    contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrINF')
-    contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contactINF')
-    contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contactINF')
-    job_profile_two_months_intern = models.BooleanField()
-    job_profile_six_months_intern = models.BooleanField()
-    job_profile_joint_master_thesis_program = models.BooleanField()
+    contact_details_head_hr = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='head_hrINF',null=True, blank=True)
+    contact_details_first_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='first_person_of_contactINF',null=True, blank=True)
+    contact_details_second_person_of_contact = models.ForeignKey(ContactDetails, on_delete=models.CASCADE, related_name='second_person_of_contactINF',null=True, blank=True)
+    job_profile_two_months_intern = models.BooleanField(null=True,blank=True)
+    job_profile_six_months_intern = models.BooleanField(null=True,blank=True)
+    job_profile_joint_master_thesis_program = models.BooleanField(null=True,blank=True)
 
-    stipend_details_stipend_amount = models.TextField()
-    stipend_details_bonus_perks_incentives = models.TextField()
-    stipend_details_accodation_trip_fare = models.TextField()
-    stipend_details_bonus_service_contract = models.TextField()
-    selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processINF')
+    stipend_details_stipend_amount = models.TextField(null=True,blank=True)
+    stipend_details_bonus_perks_incentives = models.TextField(null=True,blank=True)
+    stipend_details_accodation_trip_fare = models.TextField(null=True,blank=True)
+    stipend_details_bonus_service_contract = models.TextField(null=True,blank=True)
+    selection_process = models.ForeignKey(SelectionProcess, on_delete=models.CASCADE, related_name='selection_processINF',null=True, blank=True)
 
 class Branch(models.Model):
     name = models.CharField(max_length=255,null=False,blank=False,primary_key=True)
