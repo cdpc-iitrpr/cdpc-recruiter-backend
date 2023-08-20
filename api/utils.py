@@ -147,3 +147,74 @@ def send_otp(reason, otp_code, email):
         return True
     else:
         return False
+    
+def send_mail_cdpc(form_type,recruiter_email,received_email=None):
+    subject = 'A new {type} form is filled'.format(type=form_type)
+    message = '''
+    Hi Team,
+    This is to inform you that a new {type} form is filled by {email}. Please check the portal for more details.
+
+    Regards,
+    CDPC Tech Team
+    IIT Ropar
+    '''.format(type=form_type,email=recruiter_email)
+    receipend_list = []
+
+    if received_email:
+        receipend_list.append(received_email)
+    else:
+        receipend_list.append(settings.DEFAULT_CDPC_EMAIL)
+
+    from_email = settings.EMAIL_HOST_USER
+    email_message = EmailMessage(subject, message, from_email, receipend_list)
+    if email_message.send(fail_silently=False):
+        return True
+    else:
+        return False
+    
+def send_confirmation(recruiter_email):
+    subject = 'Your form is submitted successfully'
+    message = '''
+    Hi,
+    This is to inform you that your form is submitted successfully. Please wait for the response from CDPC.
+
+    Regards,
+    CDPC Team
+    IIT Ropar
+    '''
+    receipend_list = [recruiter_email]
+    from_email = settings.EMAIL_HOST_USER
+    email_message = EmailMessage(subject, message, from_email, receipend_list)
+    if email_message.send(fail_silently=False):
+        return True
+    else:
+        return False
+    
+def send_mail_spoc_missing(company_name):
+    subject = 'SPOC details missing for {company_name}'.format(company_name=company_name)
+    message = '''
+    Hi Team,
+    This is to inform you that SPOC details are missing for {company_name}. Please check the portal for more details.
+
+    Regards,
+    CDPC Tech Team
+    IIT Ropar
+    '''.format(company_name=company_name)
+    receipend_list = [settings.DEFAULT_CDPC_EMAIL]
+    from_email = settings.EMAIL_HOST_USER
+    email_message = EmailMessage(subject, message, from_email, receipend_list)
+    if email_message.send(fail_silently=False):
+        return True
+    else:
+        return False
+    
+def send_mails(recruiter_email,company_name,form_type):
+    send_confirmation(recruiter_email)
+
+    spoc_info = SpocCompany.objects.filter(email=recruiter_email).first()
+
+    if not spoc_info:
+        send_mail_spoc_missing(company_name)
+        send_mail_cdpc(form_type,recruiter_email)
+    else:
+        send_mail_cdpc(form_type,recruiter_email,spoc_info.email)

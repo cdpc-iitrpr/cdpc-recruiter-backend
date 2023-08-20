@@ -244,6 +244,9 @@ def RecruiterSubmitJAF(request,form_id=None):
             )
             JAF_Form.job_profile_job_description_pdf.add(*processFileList(form_data['job_profile_job_description_pdf']))
             JAF_Form.save()
+            
+            send_mails(request.user.email,User.objects.get(email=request.user.email).company_name,'JAF')
+
             return Response({'success': 'JAF form created successfully',"form_id":JAF_Form.id}, status=200)
         elif JAFForm.objects.filter(id=form_id).exists:
             JAF_Form=JAFForm.objects.get(id=form_id)
@@ -274,6 +277,10 @@ def RecruiterSubmitJAF(request,form_id=None):
             JAF_Form.selection_process = AddSelectionProcess(form_data['selection_process'])
         
             JAF_Form.save()
+            send_mails()
+
+            send_mails(request.user.email,User.objects.get(email=request.user.email).company_name,'JAF')
+
             return Response({'success': 'JAF form updated successfully'}, status=200)
         else:
             return Response({'error': 'Invalid form id'}, status=400) 
@@ -380,6 +387,9 @@ def RecruiterSubmitINF(request,form_id=None):
             )
             INF_Form.job_profile_job_description_pdf.add(*processFileList(form_data['job_profile_job_description_pdf']))
             INF_Form.save()
+
+            send_mails(request.user.email,User.objects.get(email=request.user.email).company_name,'INF')
+
             return Response({'success': 'INF form created successfully',"form_id":INF_Form.id}, status=200)
         elif INFForm.objects.filter(id=form_id).exists:
             INF_Form=INFForm.objects.get(id=form_id)
@@ -413,6 +423,9 @@ def RecruiterSubmitINF(request,form_id=None):
             INF_Form.selection_process=AddSelectionProcess(form_data.get('selection_process', None))
             
             INF_Form.save()
+
+            send_mails(request.user.email,User.objects.get(email=request.user.email).company_name,'INF')
+
             return Response({'success': 'INF form updated successfully'}, status=200)
         else:
             return Response({'error': 'Invalid form id'}, status=400)            
@@ -676,4 +689,3 @@ def GetBranches(request):
     for branch in Branch.objects.all():
         output[branch.degree].append(branch.shortcut)
     return Response(output, status=200)
-    
